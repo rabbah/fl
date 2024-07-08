@@ -11,10 +11,16 @@ Here are some sample calls for using `fl`:
 ### Sample Calls
 
 1. **Description**: List all files in the current directory.
-   **Command**: `fl list all files in current directory`
+   ```bash
+   fl list all files in current directory
+   ```
 
 2. **Description**: Create a new directory named documents.
-   **Command**: `fl create a new directory named documents`
+   ```bash
+   fl create a new directory named documents
+   ```
 
 3. **Description**: Search for files containing a specific keyword in the src directory.
-   **Command**: `fl search for files containing keyword in src directory`
+   ```bash
+   fl search for files containing keyword in src directory
+   ```
