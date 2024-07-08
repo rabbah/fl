@@ -24,3 +24,8 @@ Here are some sample calls for using `fl`:
    ```bash
    fl search for files containing keyword in src directory
    ```
+
+4. **Description**: Call an authenticated API and pass in some JSON data.
+   ```bash
+   fl call an api that returns JSON and sends some data {"foo":"bar"} as json where the api uses basic auth and the secret is an environment variable called API_KEY
+   ```
