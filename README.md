@@ -61,5 +61,6 @@ There are related command line tools for using LLMs with a CLI that I've found. 
 
 - `gencmd`
   - Generate commands with Generative AI [blog](https://sathishvj.medium.com/gencmd-generate-commands-with-generative-ai-d945b2a1d050)
-  - `gencmd-bash` https://github.com/sathishvj/gencmd-bash and related Go implementation `gencmd-go` https://github.com/sathishvj/gencmd-go
+  - `gencmd-bash` https://github.com/sathishvj/gencmd-bash implementation in Bash
+  - `gencmd-go` https://github.com/sathishvj/gencmd-go an implementation in Go
 - `ShellGPT` https://github.com/TheR1D/shell_gpt
