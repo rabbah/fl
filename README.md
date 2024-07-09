@@ -47,3 +47,19 @@ Here are some sample calls for using `fl`:
    ```sh
    curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Basic $API_KEY' -d '{"foo":"bar"}' https://api.example.com/endpoint
    ```
+
+## Postman Flows
+
+The entire backend for `fl` is implemented using [Postman Flows](https://learning.postman.com/docs/postman-flows/overview). Flows is a visual and low-code programming language for working with APIs and creating workflows with direct manipulation of APIs and data.
+
+- TODO: embeddable flow
+
+## Notes and References
+
+This README Usage and Sample Calls sections were entirely generated with `fl` itself.
+There are related command line tools for using LLMs with a CLI that I've found. There are surely others, so let me know what other interesting and related tools I should check out.
+
+- `gencmd`
+  - Generate commands with Generative AI [blog](https://sathishvj.medium.com/gencmd-generate-commands-with-generative-ai-d945b2a1d050)
+  - `gencmd-bash` https://github.com/sathishvj/gencmd-bash and related Go implementation `gencmd-go` https://github.com/sathishvj/gencmd-go
+- `ShellGPT` https://github.com/TheR1D/shell_gpt
