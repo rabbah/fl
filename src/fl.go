@@ -21,8 +21,11 @@ import (
  */
 // useage definition functions to explain command and its args
 var Usage = func () {
-	fmt.Println("Usage of fl:")
-	fmt.Println("\t-h,--help: show command usage")
+	fmt.Println("Usage: fl [-hyv] prompt...")
+	// for formatting - please start with a space and ensure descruption alignment with tabs
+	fmt.Println(" -h,--help\t\tshow command usage")
+	fmt.Println(" -y\t\t\tautoexecute the generated command")
+	fmt.Println(" -v,--verbose\t\tdisplay updates of the command progress")
 }
 
 // list of global flags
