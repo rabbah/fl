@@ -21,10 +21,11 @@ import (
  */
 // useage definition functions to explain command and its args
 var Usage = func () {
-	fmt.Println("Usage: fl [-hyv] prompt...")
+	fmt.Println("Usage: fl [-hynv] prompt...")
 	// for formatting - please start with a space and ensure descruption alignment with tabs
 	fmt.Println(" -h,--help\t\tshow command usage")
 	fmt.Println(" -y\t\t\tautoexecute the generated command")
+	fmt.Println(" -n\t\t\tdo not prompt for or run generated command (takes priority over -y)")
 	fmt.Println(" -v,--verbose\t\tdisplay updates of the command progress")
 }
 
@@ -32,11 +33,11 @@ var Usage = func () {
 var (
 	verbose = false
 	autoexecute = false
+	noexec = false
 )
-
 // number of distinct flags
 const (
-	numFlags = 3	
+	numFlags = 4	
 ) 
 
 /**********************
@@ -57,6 +58,11 @@ func flagHandleVerbose() {
 // handler for when -y is provided
 func flagHandleExecuteCmd() {
 	autoexecute = true
+}
+
+// handler for when -n is provided
+func flagHandleNoExec() {
+	noexec = true
 }
 
 // parse the user input for potential prompts
@@ -89,11 +95,20 @@ var argParse = func () (prompt string) {
 		case "-y": // execute command automatically
 			startPromptIndex++
 			flagHandleExecuteCmd()
+		case "-n":
+			startPromptIndex++
+			flagHandleNoExec()
 		default:
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
 			break
 		}
+	}
+
+	// noexec takes priority over autoexecute, turn off autoexec
+	// guarentees mutual exclusivity
+	if noexec && autoexecute {
+		autoexecute = false
 	}
 
 	prompt = strings.Join(os.Args[startPromptIndex:], " ")
@@ -154,8 +169,20 @@ func main() {
 	fmt.Println(result)
 	fmt.Println()
 
-	// perform the command if autoexecute enabled
-	if autoexecute {
+	// if not skipping prompt, ask user if they would like to execute
+	userExecute := false
+	if !noexec && !autoexecute {
+		var userInput string
+		fmt.Print("Would you like to execute the command? (y/n): ")
+		fmt.Scanln(&userInput)
+		userInput = strings.ToLower(userInput)
+		if userInput == "y" || userInput == "yes" {
+			userExecute = true
+		}
+	}
+
+	// perform the command if autoexecute enabled or user prompted to exec
+	if autoexecute || userExecute {
 		// convert to arr of values (exec requires a specific format)
 		fullCmd := strings.Split(result, " ")
 		cmd := fullCmd[0]
