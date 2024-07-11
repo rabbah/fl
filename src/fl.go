@@ -148,8 +148,17 @@ func main() {
 
 	// perform the command if autoexecute enabled
 	if autoexecute {
+		// convert to arr of values (exec requires a specific format)
+		fullCmd := strings.Split(result, " ")
+		cmd := fullCmd[0]
+		args := []string{}
+
+		if len(fullCmd) > 1 {
+			args=fullCmd[1:]
+		}
+
 		if verbose { fmt.Println("Executing the result...") }
-		out, err := exec.Command(result).Output()
+		out, err := exec.Command(cmd, args...).Output()
 	
 		if err != nil {
 			panic(err)
