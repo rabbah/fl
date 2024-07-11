@@ -113,9 +113,11 @@ func main() {
 	// Concatenate all arguments to form the payload
 	apiUrl := "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
 
+	// @verbose
 	if verbose { fmt.Println("Prompt extracted:", prompt) }
 
 	// Make the API call
+	// @verbose
 	if verbose { fmt.Println("Sending prompt...") }
 	response, err := http.Post(apiUrl, "application/json", strings.NewReader(fmt.Sprintf(`{"prompt": "%s"}`, prompt)))
 	if err != nil {
@@ -125,6 +127,7 @@ func main() {
 	defer response.Body.Close()
 
 	// Parse the response body as JSON
+	// @verbose
 	if verbose { fmt.Println("Parsing response...") }
 	var data map[string]interface{}
 	err = json.NewDecoder(response.Body).Decode(&data)
@@ -134,6 +137,7 @@ func main() {
 	}
 
 	// Check if the "output" field exists
+	// @verbose
 	if verbose { fmt.Println("Checking AI output field...") }
 	result, ok := data["output"].(string)
 	if !ok {
@@ -142,6 +146,7 @@ func main() {
 	}
 	
 	// Emit the result
+	// @verbose
 	if verbose { fmt.Println("Output: \n") }
 	fmt.Println(result)
 	fmt.Println()
@@ -157,7 +162,9 @@ func main() {
 			args=fullCmd[1:]
 		}
 
+		// @verbose
 		if verbose { fmt.Println("Executing the result...") }
+
 		out, err := exec.Command(cmd, args...).Output()
 	
 		if err != nil {
