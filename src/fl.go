@@ -15,7 +15,7 @@ import (
 /*
  * To add a flag:
  * 1. Update its entry in Usage()
- * 2. Add it to the string list called 'flags' below and update numFlags
+ * 2. Add it to the list of flags below and update numFlags
  * 3. Create a handler function and add it to the switch-case in argParse()
  */
 // useage definition functions to explain command and its args
@@ -24,17 +24,15 @@ var Usage = func () {
 	fmt.Println("\t-h,--help: show command usage")
 }
 
-// list of allowed flags
+// list of global flags
 var (
-	flags = []string { 
-		"-h", "--help" ,
-		"-y",
-	}
+	verbose = false
+	autoexecute = false
 )
 
 // number of distinct flags
 const (
-	numFlags = 2	
+	numFlags = 3	
 ) 
 
 /**********************
@@ -45,6 +43,11 @@ const (
 func flagHandleHelp() {
 	Usage()
 	os.Exit(1)
+}
+
+// verbose handler
+func flagHandleVerbose() {
+	verbose = true
 }
 
 // handler for when -y is provided
@@ -74,6 +77,11 @@ var argParse = func () (prompt string) {
 		case "--help":
 			startPromptIndex++
 			flagHandleHelp()
+		case "-v": // handle program verbosity
+			fallthrough
+		case "--verbose":
+			startPromptIndex++
+			flagHandleVerbose()
 		case "-y": // execute command automatically
 			startPromptIndex++
 			flagHandleExecuteCmd()
@@ -100,7 +108,10 @@ func main() {
 	// Concatenate all arguments to form the payload
 	apiUrl := "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
 
+	if verbose { fmt.Println("Prompt extracted:", prompt) }
+
 	// Make the API call
+	if verbose { fmt.Println("Sending prompt...") }
 	response, err := http.Post(apiUrl, "application/json", strings.NewReader(fmt.Sprintf(`{"prompt": "%s"}`, prompt)))
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
@@ -109,6 +120,7 @@ func main() {
 	defer response.Body.Close()
 
 	// Parse the response body as JSON
+	if verbose { fmt.Println("Parsing response...") }
 	var data map[string]interface{}
 	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
@@ -117,6 +129,7 @@ func main() {
 	}
 
 	// Check if the "output" field exists
+	if verbose { fmt.Println("Checking AI output field...") }
 	result, ok := data["output"].(string)
 	if !ok {
 		fmt.Println("Error: Expected output field not found in Flows API response")
@@ -124,5 +137,6 @@ func main() {
 	}
 
 	// Emit the result
+	if verbose { fmt.Println("Output: \n") }
 	fmt.Println(result)
 }
