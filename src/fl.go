@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -13,7 +14,7 @@ import (
  *********************/
 
 /*
- * To add a flag:
+ * To add a new flag:
  * 1. Update its entry in Usage()
  * 2. Add it to the list of flags below and update numFlags
  * 3. Create a handler function and add it to the switch-case in argParse()
@@ -52,7 +53,7 @@ func flagHandleVerbose() {
 
 // handler for when -y is provided
 func flagHandleExecuteCmd() {
-
+	autoexecute = true
 }
 
 // parse the user input for potential prompts
@@ -102,6 +103,10 @@ var argParse = func () (prompt string) {
 	return (prompt)
 }
 
+/**********************
+ * main
+ *********************/
+
 func main() {
 	// parse arguments and recieve prompt
 	prompt := argParse()
@@ -135,8 +140,22 @@ func main() {
 		fmt.Println("Error: Expected output field not found in Flows API response")
 		os.Exit(1)
 	}
-
+	
 	// Emit the result
 	if verbose { fmt.Println("Output: \n") }
 	fmt.Println(result)
+	fmt.Println()
+
+	// perform the command if autoexecute enabled
+	if autoexecute {
+		if verbose { fmt.Println("Executing the result...") }
+		out, err := exec.Command(result).Output()
+	
+		if err != nil {
+			panic(err)
+		}
+	
+		// Print the output
+		fmt.Println(string(out))
+	}
 }
