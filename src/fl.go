@@ -43,7 +43,7 @@ const (
 // handler for when --help or -h are provided
 func flagHandleHelp() {
 	Usage()
-	os.Exit(1)
+	os.Exit(0)
 }
 
 // verbose handler
