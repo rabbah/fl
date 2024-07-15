@@ -2,13 +2,19 @@ package main
 
 import(
     "testing"
+    "strings"
 )
 
-// test argparse when help flag is detected
-func TestArgParseHelp(t *testing.T) {
+/**********************
+ * argparse
+ *********************/
+
+// test argparse extracts prompt with no flags
+func TestArgParseNoFlags(t *testing.T) {
     prompt := "This is an example prompt"
-    msg := argParse()
-    if prompt != msg {
-        t.Fatalf(`prompt: '%s' not equal to msg: '%s'`, prompt, msg)
+    cli_input := "fl " + prompt
+    parsed, err := argParse(strings.Split(cli_input, " "))
+    if parsed != prompt {
+        t.Fatalf(`argParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
     }
 }

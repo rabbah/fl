@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"errors"
 )
 
 /**********************
@@ -22,6 +23,7 @@ var (
 // number of distinct flags
 const (
 	numFlags = 4	
+	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
 ) 
 
 /*
@@ -73,12 +75,12 @@ func flagHandleNoExec() {
 }
 
 // parse the user input for potential prompts
-var argParse = func () (prompt string) {
+var argParse = func (args []string) (prompt string, err error) {
 	// Check if command line arguments are provided
-	if len(os.Args) < 2 {
+	if len(args) < 2 {
 		// expecting at least 2 arguments
 		Usage()
-		os.Exit(1)
+		return "", errors.New("expecting at least 2 args")
 	}
 
 	// Start of the user prompt (after args have been parsed)
@@ -88,7 +90,7 @@ var argParse = func () (prompt string) {
 
 	// check for flags (add 1 bc first index is command path)
 	for i := 1; i < numFlags+1 && validArg; i++ {
-		switch os.Args[i] {
+		switch args[i] {
 		case "-h": // help commands (just display useage)
 			fallthrough
 		case "--help":
@@ -118,14 +120,14 @@ var argParse = func () (prompt string) {
 		autoexecute = false
 	}
 
-	prompt = strings.Join(os.Args[startPromptIndex:], " ")
+	prompt = strings.Join(args[startPromptIndex:], " ")
 	if prompt == "" {
-		fmt.Println("Prompt cannot be empty\n")
+		fmt.Println("Prompt cannot be empty")
 		Usage()
 		os.Exit(1)
 	}
 
-	return (prompt)
+	return prompt, nil
 }
 
 /**********************
@@ -134,10 +136,7 @@ var argParse = func () (prompt string) {
 
 func main() {
 	// parse arguments and recieve prompt
-	prompt := argParse()
-	// Concatenate all arguments to form the payload
-	apiUrl := "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
-
+	prompt, err := argParse(os.Args)
 	verbosePrint("Prompt extracted:", prompt)
 
 	// Make the API call
