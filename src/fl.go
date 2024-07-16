@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
-	"strings"
 	"fl/helpers"
 	"fl/exec"
 )
@@ -48,27 +45,18 @@ func main() {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-
-	response, err := http.Post(apiUrl, "application/json", strings.NewReader(fmt.Sprintf(`{"prompt": "%s"}`, prompt)))
+	res, err := helpers.PromptAI(apiUrl, prompt)
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
 		os.Exit(1)
 	}
-	defer response.Body.Close()
+	defer res.Body.Close()
 
 	// Parse the response body as JSON
 	helpers.Print(Flags.Verbose, "Parsing response...")
-
-	var data map[string]interface{}
-	err = json.NewDecoder(response.Body).Decode(&data)
+	result, err := helpers.ParseResponse(res)
 	if err != nil {
-		fmt.Printf("Failed to parse Flows API response: %s\n", err)
-		os.Exit(1)
-	}
-	
-	result, ok := data["output"].(string)
-	if !ok {
-		fmt.Println("Error: Expected output field not found in Flows API response")
+		fmt.Printf(result, err)
 		os.Exit(1)
 	}
 	
