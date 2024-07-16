@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"fl/helpers"
+	"fl/exec"
 )
 
 /**********************
@@ -25,6 +25,7 @@ const (
 
 func main() {
 
+	// initialize flags struct
 	Flags := helpers.ConstructFlags()
 
 	// parse arguments and recieve prompt
@@ -64,9 +65,6 @@ func main() {
 		fmt.Printf("Failed to parse Flows API response: %s\n", err)
 		os.Exit(1)
 	}
-
-	// Check if the "output" field exists
-	helpers.Print(Flags.Verbose, "Checking AI output field...")
 	
 	result, ok := data["output"].(string)
 	if !ok {
@@ -76,42 +74,26 @@ func main() {
 	
 	// Emit the result
 	helpers.Print(Flags.Verbose, "Output: \n")
-
 	fmt.Println(result)
 	fmt.Println()
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
 	if !Flags.Noexec && !Flags.Autoexecute {
-		var userInput string
-		fmt.Print("Would you like to execute the command? (y/n): ")
-		fmt.Scanln(&userInput)
-		userInput = strings.ToLower(userInput)
-		if userInput == "y" || userInput == "yes" {
-			userExecute = true
-		}
+		userExecute = exec.PromptExec()
 	}
 
 	// perform the command if autoexecute enabled or user prompted to exec
 	if Flags.Autoexecute || userExecute {
-		// convert to arr of values (exec requires a specific format)
-		fullCmd := strings.Split(result, " ")
-		cmd := fullCmd[0]
-		args := []string{}
-
-		if len(fullCmd) > 1 {
-			args=fullCmd[1:]
-		}
-
 		helpers.Print(Flags.Verbose, "Executing the result...")
+		
+		out, err := exec.Exec(result)
 
-		out, err := exec.Command(cmd, args...).Output()
-	
 		if err != nil {
 			panic(err)
 		}
 	
 		// Print the output
-		fmt.Println(string(out))
+		fmt.Println(out)
 	}
 }
