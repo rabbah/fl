@@ -15,8 +15,9 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, Autoexecute, Noexec bool
-	Len                                int
+	Verbose, Help, Autoexecute, Noexec, Output bool
+	Outfile                                    string
+	Len                                        int
 }
 
 func ConstructFlags() (Flags FlagStruct) {
@@ -25,6 +26,8 @@ func ConstructFlags() (Flags FlagStruct) {
 		Help:        false,
 		Autoexecute: false,
 		Noexec:      false,
+		Output:      false,
+		Outfile:     "",
 		Len:         4,
 	}
 }
@@ -70,6 +73,12 @@ func flagsHandlerNoexec(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.Noexec = true
 }
 
+func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
+	*startPromptIndex += 2
+	Flags.Output = true
+	Flags.Outfile = outfile // pass name of outfile
+}
+
 /**********************
  * ArgParse
  *********************/
@@ -106,6 +115,9 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 			flagsHandlerAutoexecute(Flags, &startPromptIndex)
 		case "-n":
 			flagsHandlerNoexec(Flags, &startPromptIndex)
+		case "-o":
+			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
+			i++ // skip next arg (it should be filename)
 		default:
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
@@ -119,9 +131,15 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 		Flags.Autoexecute = false
 	}
 
+	// if -o raised but empty filename passed, use default filename
+	// (this implies no prompt was passed either, but still safety check)
+	if Flags.Output && Flags.Outfile == "" {
+		return "", errors.New("outfile cannot be empty")
+	}
+
 	prompt = strings.Join(args[startPromptIndex:], " ")
 	if prompt == "" {
-		return "", errors.New("Prompt cannot be empty")
+		return "", errors.New("prompt cannot be empty")
 	}
 
 	return prompt, nil
