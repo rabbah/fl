@@ -110,6 +110,25 @@ func TestArgParseNoexec(t *testing.T) {
 	}
 }
 
+// test output
+func TestArgParseOutput(t *testing.T) {
+	Flags := ConstructFlags()
+
+	prompt := "This is an example prompt"
+	outfile := "outfile"
+	cli_input := "fl -o " + outfile + " " + prompt
+	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.Autoexecute || Flags.Noexec || Flags.Verbose || Flags.Help || !Flags.Output {
+		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual - y: %t, n: %t, v: %t, h: %t`, cli_input, "n", Flags.Autoexecute, Flags.Noexec, Flags.Verbose, Flags.Help)
+	}
+	if Flags.Outfile != outfile {
+		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, outfile)
+	}
+	if parsed != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	}
+}
+
 /**********************
  * Validate multiple flag interactions
  *********************/
