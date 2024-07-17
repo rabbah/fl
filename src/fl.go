@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fl/exec"
+	"fl/helpers"
 	"fmt"
 	"os"
-	"fl/helpers"
-	"fl/exec"
 )
 
 /**********************
@@ -14,7 +14,7 @@ import (
 const (
 	// url of the Flow endpoint
 	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
-) 
+)
 
 /**********************
  * main
@@ -59,7 +59,7 @@ func main() {
 		fmt.Printf(result, err)
 		os.Exit(1)
 	}
-	
+
 	// Emit the result
 	helpers.Print(Flags.Verbose, "Output: \n")
 	fmt.Println(result)
@@ -74,13 +74,13 @@ func main() {
 	// perform the command if autoexecute enabled or user prompted to exec
 	if Flags.Autoexecute || userExecute {
 		helpers.Print(Flags.Verbose, "Executing the result...")
-		
+
 		out, err := exec.Exec(result)
 
 		if err != nil {
 			panic(err)
 		}
-	
+
 		// Print the output
 		fmt.Println(out)
 	}

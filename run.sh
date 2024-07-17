@@ -20,7 +20,10 @@ case "$1" in
     # E.g. ./run.sh rls -l -v
     "rls")
         pushd src > /dev/null
-        PROMPT="show the items in the current directory in long list format without backtics or a reference to the shell"
+        PROMPT="show the hidden items in this directory in long list format"
+        # the below prompts should respectively yield 'ls -a -l ..' 'ls -a -l ~', but it has trouble executing without error
+        # PROMPT="show the hidden items in the directory above in long list format"
+        # PROMPT="show the hidden items in my home directory in long list format. don't include backtics or a reference to the shell. Separate flags into multiple flags. Don't use tilde expansion."
         shift
         go run fl.go $@ $PROMPT
         popd > /dev/null

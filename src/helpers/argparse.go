@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"strings"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 /*
@@ -16,21 +16,21 @@ import (
 // global flag structure
 type FlagStruct struct {
 	Verbose, Help, Autoexecute, Noexec bool
-	Len int
+	Len                                int
 }
 
-func ConstructFlags()(Flags FlagStruct) {
-	return FlagStruct {
-		Verbose: false,
-		Help: false,
+func ConstructFlags() (Flags FlagStruct) {
+	return FlagStruct{
+		Verbose:     false,
+		Help:        false,
 		Autoexecute: false,
-		Noexec: false,
-		Len: 4,
+		Noexec:      false,
+		Len:         4,
 	}
 }
 
 // useage definition functions to explain command and its args
-var Usage = func () {
+var Usage = func() {
 	fmt.Println("Usage: fl [-hynv] prompt...")
 	// for formatting - please start with a space and ensure descruption alignment with tabs
 	fmt.Println(" -h,--help\t\tshow command usage")
@@ -121,7 +121,7 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 
 	prompt = strings.Join(args[startPromptIndex:], " ")
 	if prompt == "" {
-		return "", errors.New("Prompt cannot be empty") 
+		return "", errors.New("Prompt cannot be empty")
 	}
 
 	return prompt, nil

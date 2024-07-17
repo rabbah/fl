@@ -1,11 +1,11 @@
 package helpers
 
 import (
-	"net/http"
-	"strings"
-	"fmt"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 )
 
 func PromptAI(apiUrl string, prompt string) (res *http.Response, err error) {

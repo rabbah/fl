@@ -2,8 +2,8 @@ package exec
 
 import (
 	"fmt"
-	"strings"
 	"os/exec"
+	"strings"
 )
 
 func PromptExec() (userExec bool) {
@@ -18,14 +18,14 @@ func PromptExec() (userExec bool) {
 	return false
 }
 
-func Exec(result string)(res string, err error) {
+func Exec(result string) (res string, err error) {
 	// convert to arr of values (exec requires a specific format)
 	fullCmd := strings.Split(result, " ")
 	cmd := fullCmd[0]
 	args := []string{}
 
 	if len(fullCmd) > 1 {
-		args=fullCmd[1:]
+		args = fullCmd[1:]
 	}
 
 	var out []byte

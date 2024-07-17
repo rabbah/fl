@@ -1,8 +1,8 @@
 package exec
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 // create a testfile using EXEC, check command with flags
@@ -13,7 +13,7 @@ func TestExecution(t *testing.T) {
 	cmd_cleanup := "rm " + filename
 
 	// create file
-    res, err := Exec(cmd)
+	res, err := Exec(cmd)
 	if err != nil {
 		t.Fatalf(`Exec("%s") = "%s", %v. Expected no err`, cmd, res, err)
 	}
