@@ -3,6 +3,7 @@ package main
 import (
 	"fl/exec"
 	"fl/helpers"
+	"fl/io"
 	"fmt"
 	"os"
 )
@@ -83,5 +84,14 @@ func main() {
 
 		// Print the output
 		fmt.Println(out)
+	}
+
+	if Flags.Output {
+		err := io.Output(Flags.Outfile, result)
+
+		if err != nil {
+			fmt.Printf("Failed save output to file: %s\n", err)
+			os.Exit(1)
+		}
 	}
 }
