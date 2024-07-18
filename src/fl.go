@@ -28,7 +28,7 @@ func main() {
 	Flags := helpers.ConstructFlags()
 
 	// parse arguments and recieve prompt
-	prompt, err := helpers.ArgParse(os.Args, &Flags)
+	err := helpers.ArgParse(os.Args, &Flags)
 
 	// exit if -h/--help flags found
 	if Flags.Help {
@@ -43,11 +43,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	helpers.Print(Flags.Verbose, "Prompt extracted:", prompt)
+	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, prompt)
+	res, err := web.PromptAI(apiUrl, Flags.Prompt)
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
 		os.Exit(1)

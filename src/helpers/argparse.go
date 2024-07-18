@@ -16,7 +16,7 @@ import (
 // global flag structure
 type FlagStruct struct {
 	Verbose, Help, Autoexecute, Noexec, Output bool
-	Outfile                                    string
+	Outfile, Prompt                            string
 	Len                                        int
 }
 
@@ -28,6 +28,7 @@ func ConstructFlags() (Flags FlagStruct) {
 		Noexec:      false,
 		Output:      false,
 		Outfile:     "",
+		Prompt:      "",
 		Len:         4,
 	}
 }
@@ -84,11 +85,11 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
  *********************/
 
 // parse the user input for potential prompts
-func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
+func ArgParse(args []string, Flags *FlagStruct) (err error) {
 	// Check if command line arguments are provided
 	if len(args) < 2 {
 		// expecting at least 2 arguments
-		return "", errors.New("expecting at least 2 args")
+		return errors.New("expecting at least 2 args")
 	}
 
 	// Start of the user prompt (after args have been parsed)
@@ -106,7 +107,7 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 			fallthrough
 		case "--help":
 			flagsHandlerHelp(Flags, &startPromptIndex)
-			return "", nil // exit early if help flag
+			return nil // exit early if help flag
 		case "-v": // handle program verbosity
 			fallthrough
 		case "--verbose":
@@ -133,13 +134,13 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 	// if -o raised but empty filename passed, use default filename
 	// (this implies no prompt was passed either, but still safety check)
 	if Flags.Output && Flags.Outfile == "" {
-		return "", errors.New("outfile cannot be empty")
+		return errors.New("outfile cannot be empty")
 	}
 
-	prompt = strings.Join(args[startPromptIndex:], " ")
-	if prompt == "" {
-		return "", errors.New("prompt cannot be empty")
+	Flags.Prompt = strings.Join(args[startPromptIndex:], " ")
+	if Flags.Prompt == "" {
+		return errors.New("prompt cannot be empty")
 	}
 
-	return prompt, nil
+	return nil
 }

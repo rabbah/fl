@@ -15,9 +15,9 @@ func TestArgParseNoFlags(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	cli_input := "fl" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -27,9 +27,9 @@ func TestArgParseOneFlagNoPrompt(t *testing.T) {
 
 	prompt := ""
 	cli_input := "fl -v" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if parsed != prompt || err == nil { // should cause an error when no prompt given
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.Prompt != prompt || err == nil { // should cause an error when no prompt given
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -39,9 +39,9 @@ func TestArgParseEmpty(t *testing.T) {
 
 	prompt := ""
 	cli_input := "fl" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if err == nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -56,12 +56,12 @@ func TestArgParseHelp(t *testing.T) {
 	prompt := "This is an example prompt"
 	expectedPrompt := "" // skip prompt when -h is found
 	cli_input := "fl -h" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if Flags.Autoexecute || Flags.Noexec || Flags.Verbose || !Flags.Help || Flags.Output {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "h", Flags)
 	}
-	if parsed != expectedPrompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, expectedPrompt)
+	if Flags.Prompt != expectedPrompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, expectedPrompt)
 	}
 }
 
@@ -71,12 +71,12 @@ func TestArgParseVerbose(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -v" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if Flags.Autoexecute || Flags.Noexec || !Flags.Verbose || Flags.Help || Flags.Output {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "v", Flags)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -86,12 +86,12 @@ func TestArgParseAutoexec(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -y" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.Autoexecute || Flags.Noexec || Flags.Verbose || Flags.Help || Flags.Output {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "y", Flags)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -101,12 +101,12 @@ func TestArgParseNoexec(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -n" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if Flags.Autoexecute || !Flags.Noexec || Flags.Verbose || Flags.Help || Flags.Output {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "n", Flags)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -117,15 +117,15 @@ func TestArgParseOutput(t *testing.T) {
 	prompt := "This is an example prompt"
 	outfile := "outfile"
 	cli_input := "fl -o " + outfile + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if Flags.Autoexecute || Flags.Noexec || Flags.Verbose || Flags.Help || !Flags.Output {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "o", Flags)
 	}
 	if Flags.Outfile != outfile {
 		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, outfile)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -139,12 +139,12 @@ func TestArgParseHelpNoPrompt(t *testing.T) {
 
 	prompt := ""
 	cli_input := "fl -v -h" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.Help {
 		t.Fatalf(`help = 'false'. Expected 'true'`)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -155,12 +155,12 @@ func TestArgParseHelpMultipleFlags(t *testing.T) {
 	prompt := "This is an example prompt"
 	expectedPrompt := "" // skip prompt when -h is found
 	cli_input := "fl -v -h" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.Help {
 		t.Fatalf(`help = 'false'. Expected 'true'`)
 	}
-	if parsed != expectedPrompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, expectedPrompt)
+	if Flags.Prompt != expectedPrompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, expectedPrompt)
 	}
 }
 
@@ -170,11 +170,11 @@ func TestArgParseAllFlags(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -y -n -v" + " " + prompt
-	parsed, err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || !Flags.Noexec || !Flags.Verbose {
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.Autoexecute || !Flags.Noexec || !Flags.Verbose || Flags.Help || Flags.Output {
 		t.Fatalf(`ArgParse("%s") yields flags %+v. Expected y: false, n: true, v: true`, cli_input, Flags)
 	}
-	if parsed != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, parsed, err, prompt)
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
