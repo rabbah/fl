@@ -30,7 +30,7 @@ func main() {
 	prompt, err := helpers.ArgParse(os.Args, &Flags)
 
 	// exit if -h/--help flags found
-	if Flags.Help == true {
+	if Flags.Help {
 		// handler for when --help or -h are provided
 		helpers.Usage()
 		os.Exit(0)

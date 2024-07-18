@@ -121,7 +121,6 @@ func ArgParse(args []string, Flags *FlagStruct) (prompt string, err error) {
 		default:
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
-			break
 		}
 	}
 
