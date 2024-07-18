@@ -4,6 +4,7 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
+	"fl/web"
 	"fmt"
 	"os"
 )
@@ -46,7 +47,7 @@ func main() {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := helpers.PromptAI(apiUrl, prompt)
+	res, err := web.PromptAI(apiUrl, prompt)
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
 		os.Exit(1)
@@ -55,7 +56,7 @@ func main() {
 
 	// Parse the response body as JSON
 	helpers.Print(Flags.Verbose, "Parsing response...")
-	result, err := helpers.ParseResponse(res)
+	result, err := web.ParseResponse(res)
 	if err != nil {
 		fmt.Printf(result, err)
 		os.Exit(1)
