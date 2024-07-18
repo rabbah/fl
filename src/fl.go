@@ -4,7 +4,7 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
-	"fl/tea"
+	"fl/ui"
 	"fl/web"
 	"fmt"
 	"os"
@@ -106,7 +106,7 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		err = tea.RunProgram()
+		err = ui.RunProgram(Flags)
 		if err != nil {
 			fmt.Printf("Error running TUI: %v", err)
 			os.Exit(1)

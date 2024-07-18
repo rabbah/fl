@@ -1,6 +1,7 @@
-package tea
+package ui
 
 import (
+	"fl/helpers"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -76,7 +77,7 @@ func (m model) View() string {
 	return s
 }
 
-func RunProgram() (err error) {
+func RunProgram(Flags helpers.FlagStruct) (err error) {
 	p := tea.NewProgram(initialModel())
 	_, err = p.Run()
 	return err
