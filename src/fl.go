@@ -4,6 +4,7 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
+	"fl/tea"
 	"fl/web"
 	"fmt"
 	"os"
@@ -23,6 +24,12 @@ const (
  *********************/
 
 func main() {
+
+	err := tea.RunProgram()
+	if err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
+	}
 
 	// initialize flags struct
 	Flags := helpers.ConstructFlags()
