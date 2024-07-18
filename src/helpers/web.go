@@ -24,7 +24,7 @@ func ParseResponse(res *http.Response) (result string, err error) {
 	result, ok := data["output"].(string)
 
 	if !ok {
-		return "", errors.New("Error: Expected output field not found in Flows API response")
+		return "", errors.New("expected output field not found in Flows API response")
 	}
 
 	return result, nil
