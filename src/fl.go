@@ -20,35 +20,10 @@ const (
 )
 
 /**********************
- * main
+ * fl in-line execution
  *********************/
 
-func main() {
-
-	err := tea.RunProgram()
-	if err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
-	}
-
-	// initialize flags struct
-	Flags := helpers.ConstructFlags()
-
-	// parse arguments and recieve prompt
-	err := helpers.ArgParse(os.Args, &Flags)
-
-	// exit if -h/--help flags found
-	if Flags.Help {
-		// handler for when --help or -h are provided
-		helpers.Usage()
-		os.Exit(0)
-	}
-
-	if err != nil {
-		fmt.Printf("Parse error: %s\n", err)
-		helpers.Usage()
-		os.Exit(1)
-	}
+func noTui(Flags helpers.FlagStruct) {
 
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
@@ -101,5 +76,43 @@ func main() {
 			fmt.Printf("Failed save output to file: %s\n", err)
 			os.Exit(1)
 		}
+	}
+}
+
+/**********************
+ * main
+ *********************/
+
+func main() {
+
+	// initialize flags struct
+	Flags := helpers.ConstructFlags()
+
+	// parse arguments and recieve prompt
+	err := helpers.ArgParse(os.Args, &Flags)
+
+	if err != nil {
+		fmt.Printf("Parse error: %s\n", err)
+		helpers.Usage()
+		os.Exit(1)
+	}
+
+	// exit if -h/--help flags found
+	if Flags.Help {
+		// handler for when --help or -h are provided
+		helpers.Usage()
+		os.Exit(0)
+	}
+
+	// Otherwise check for TUI flag
+	if Flags.Tui {
+		err = tea.RunProgram()
+		if err != nil {
+			fmt.Printf("Error running TUI: %v", err)
+			os.Exit(1)
+		}
+	} else {
+		// execute in-line if TUI flag not set
+		noTui(Flags)
 	}
 }

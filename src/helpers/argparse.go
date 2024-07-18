@@ -15,9 +15,9 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, Autoexecute, Noexec, Output bool
-	Outfile, Prompt                            string
-	Len                                        int
+	Verbose, Help, Autoexecute, Noexec, Tui, Output bool
+	Outfile, Prompt                                 string
+	Len                                             int
 }
 
 func ConstructFlags() (Flags FlagStruct) {
@@ -26,6 +26,7 @@ func ConstructFlags() (Flags FlagStruct) {
 		Help:        false,
 		Autoexecute: false,
 		Noexec:      false,
+		Tui:         false,
 		Output:      false,
 		Outfile:     "",
 		Prompt:      "",
@@ -35,12 +36,16 @@ func ConstructFlags() (Flags FlagStruct) {
 
 // useage definition functions to explain command and its args
 var Usage = func() {
-	fmt.Println("Usage: fl [-hynv] prompt...")
+	fmt.Println("\nfl by itself will open the graphical interface. Otherwise, prompt is required.")
+	fmt.Println("\nUsage: fl [-hynvt] [-o filename] prompt...")
 	// for formatting - please start with a space and ensure descruption alignment with tabs
 	fmt.Println(" -h,--help\t\tshow command usage")
 	fmt.Println(" -y\t\t\tautoexecute the generated command")
 	fmt.Println(" -n\t\t\tdo not prompt for or run generated command (takes priority over -y)")
 	fmt.Println(" -v,--verbose\t\tdisplay updates of the command progress")
+	fmt.Println(" -o\t\t\toutput generated command to the passed textfile")
+	fmt.Println(" -t\t\t\tenter the graphical interface (TUI)")
+	fmt.Println()
 }
 
 // print passed prompt if verbose check set
@@ -72,6 +77,11 @@ func flagsHandlerAutoexecute(Flags *FlagStruct, startPromptIndex *int) {
 func flagsHandlerNoexec(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
 	Flags.Noexec = true
+}
+
+func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
+	*startPromptIndex++
+	Flags.Tui = true
 }
 
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
@@ -116,6 +126,8 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			flagsHandlerAutoexecute(Flags, &startPromptIndex)
 		case "-n":
 			flagsHandlerNoexec(Flags, &startPromptIndex)
+		case "-t":
+			flagsHandlerTui(Flags, &startPromptIndex)
 		case "-o":
 			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
 			i++ // skip next arg (it should be filename)
@@ -137,9 +149,16 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 		return errors.New("outfile cannot be empty")
 	}
 
+	// fl BY ITSELF should be the same as entering TUI
 	Flags.Prompt = strings.Join(args[startPromptIndex:], " ")
 	if Flags.Prompt == "" {
-		return errors.New("prompt cannot be empty")
+		// check no flags or only -t => enter TUI. err otherwise.
+		if startPromptIndex == 1 || Flags.Tui {
+			Flags.Tui = true // whether or not set, set it now
+			return nil
+		} else {
+			return errors.New("prompt cannot be empty")
+		}
 	}
 
 	return nil
