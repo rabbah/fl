@@ -96,12 +96,6 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 
 // parse the user input for potential prompts
 func ArgParse(args []string, Flags *FlagStruct) (err error) {
-	// Check if command line arguments are provided
-	if len(args) < 2 {
-		// expecting at least 2 arguments
-		return errors.New("expecting at least 2 args")
-	}
-
 	// Start of the user prompt (after args have been parsed)
 	startPromptIndex := 1
 	// flag to exit for loop if non-flag detected
