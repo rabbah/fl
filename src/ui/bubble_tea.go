@@ -5,80 +5,129 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-type model struct {
-	cursor   int
-	choices  []string
-	selected map[int]struct{}
+/*
+Based on examples found from the following links
+
+Find them at:
+https://github.com/charmbracelet/bubbletea/tree/master/tutorials
+*/
+
+// sessionState is used to track which model is focused
+type sessionState uint
+
+// expected views
+const (
+	flagsView sessionState = iota
+	flagsView2
+)
+
+// styling
+var (
+	// focus style
+	modelStyle = lipgloss.NewStyle().
+			Width(30).
+			Height(5).
+			Align(lipgloss.Left, lipgloss.Left).
+			BorderStyle(lipgloss.HiddenBorder())
+	focusedModelStyle = lipgloss.NewStyle().
+				Width(30).
+				Height(5).
+				Align(lipgloss.Left, lipgloss.Left).
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("69"))
+)
+
+type mainModel struct {
+	state       sessionState
+	altscreen   bool
+	flagsModel  flagsModel
+	flagsModel2 flagsModel
 }
 
-func initialModel() model {
-	return model{
-		choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
-
-		// A map which indicates which choices are selected. We're using
-		// the map like a mathematical set. The keys refer to the indexes
-		// of the `choices` slice, above.
-		selected: make(map[int]struct{}),
-	}
+func newModel() mainModel {
+	m := mainModel{state: flagsView}
+	m.flagsModel = newFlagsModel()
+	m.flagsModel2 = newFlagsModel()
+	return m
 }
 
-func (m model) Init() tea.Cmd {
-	return tea.SetWindowTitle("Grocery List")
+func (m mainModel) Init() tea.Cmd {
+	return tea.Batch(
+		m.flagsModel.Init(),
+		m.flagsModel2.Init(),
+	)
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
+		case " ":
+			if m.altscreen {
+				cmd = tea.ExitAltScreen
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				cmd = tea.EnterAltScreen
+			}
+			m.altscreen = !m.altscreen
+			return m, cmd
+		case "tab":
+			if m.state == flagsView {
+				m.state = flagsView2
+			} else {
+				m.state = flagsView
 			}
 		}
 	}
 
-	return m, nil
+	// global updates for subviews
+	m.flagsModel, cmd = m.flagsModel.Update(msg)
+	cmds = append(cmds, cmd)
+	m.flagsModel2, cmd = m.flagsModel2.Update(msg)
+	cmds = append(cmds, cmd)
+
+	// focused updates for subviews
+	switch m.state {
+	case flagsView:
+		m.flagsModel, cmd = m.flagsModel.UpdateFocused(msg)
+		cmds = append(cmds, cmd)
+	case flagsView2:
+		m.flagsModel2, cmd = m.flagsModel2.UpdateFocused(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
-func (m model) View() string {
-	s := "What should we buy at the market?\n\n"
-
-	for i, choice := range m.choices {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+func (m mainModel) View() string {
+	var s string
+	if m.state == flagsView {
+		s += lipgloss.JoinVertical(
+			lipgloss.Top,
+			focusedModelStyle.Render(fmt.Sprintf("%4s", m.flagsModel.View())),
+			modelStyle.Render(m.flagsModel2.View()),
+		)
+		s += helpStyle.Render("\nenter: toggle flag")
+	} else if m.state == flagsView2 {
+		s += lipgloss.JoinVertical(
+			lipgloss.Top,
+			modelStyle.Render(fmt.Sprintf("%4s", m.flagsModel.View())),
+			focusedModelStyle.Render(m.flagsModel2.View()),
+		)
 	}
-
-	s += "\nPress q to quit.\n"
-
+	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")
 	return s
 }
 
 func RunProgram(Flags helpers.FlagStruct) (err error) {
-	p := tea.NewProgram(initialModel())
+	initialModel := newModel()
+	p := tea.NewProgram(initialModel)
 	_, err = p.Run()
 	return err
 }
