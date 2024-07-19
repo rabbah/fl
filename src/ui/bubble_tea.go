@@ -19,6 +19,10 @@ https://github.com/charmbracelet/bubbletea/tree/master/tutorials
 type sessionState uint
 
 // expected views
+/* @IMPORTANT
+ * make sure that the sessionstate declarations are the SAME ORDER as views being added to map!!!
+ * this ensures the map is sorted SEQUENTIALLY
+ */
 const (
 	flagsView sessionState = iota
 	flagsView2
@@ -41,24 +45,31 @@ var (
 )
 
 type mainModel struct {
-	state       sessionState
-	altscreen   bool
-	flagsModel  flagsModel
-	flagsModel2 flagsModel
+	state     sessionState
+	altscreen bool
+	models    map[sessionState]tea.Model
 }
 
 func newModel() mainModel {
 	m := mainModel{state: flagsView}
-	m.flagsModel = newFlagsModel()
-	m.flagsModel2 = newFlagsModel()
+	m.models = make(map[sessionState]tea.Model)
+	/* @IMPORTANT
+	 * make sure that the views added to the map are the SAME ORDER as the sessionstate declarations!!!
+	 * this ensures the map is sorted SEQUENTIALLY
+	 */
+	m.models[flagsView] = newFlagsModel()
+	m.models[flagsView2] = newFlagsModel()
 	return m
 }
 
 func (m mainModel) Init() tea.Cmd {
-	return tea.Batch(
-		m.flagsModel.Init(),
-		m.flagsModel2.Init(),
-	)
+	var cmds []tea.Cmd
+
+	for _, model := range m.models {
+		cmds = append(cmds, model.Init())
+	}
+
+	return tea.Batch(cmds...)
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -78,27 +89,29 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.altscreen = !m.altscreen
 			return m, cmd
 		case "tab":
-			if m.state == flagsView {
-				m.state = flagsView2
-			} else {
-				m.state = flagsView
+			// session state is a uint
+			m.state = m.state + 1
+			if m.models[m.state] == nil {
+				m.state = 0
 			}
 		}
 	}
 
-	// global updates for subviews
-	m.flagsModel, cmd = m.flagsModel.Update(msg)
-	cmds = append(cmds, cmd)
-	m.flagsModel2, cmd = m.flagsModel2.Update(msg)
-	cmds = append(cmds, cmd)
+	// global updates for subviews (for spinners etc)
 
-	// focused updates for subviews
+	for sessionState, model := range m.models {
+		m.models[sessionState], cmd = model.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	// focused updates for subviews (for items allowed only in focus)
+	// must explicitly define as UpdateFocused is not part of the tea.Model interface
 	switch m.state {
 	case flagsView:
-		m.flagsModel, cmd = m.flagsModel.UpdateFocused(msg)
+		m.models[flagsView], cmd = m.models[flagsView].(flagsModel).UpdateFocused(msg)
 		cmds = append(cmds, cmd)
 	case flagsView2:
-		m.flagsModel2, cmd = m.flagsModel2.UpdateFocused(msg)
+		m.models[flagsView2], cmd = m.models[flagsView2].(flagsModel).UpdateFocused(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -110,15 +123,15 @@ func (m mainModel) View() string {
 	if m.state == flagsView {
 		s += lipgloss.JoinVertical(
 			lipgloss.Top,
-			focusedModelStyle.Render(fmt.Sprintf("%4s", m.flagsModel.View())),
-			modelStyle.Render(m.flagsModel2.View()),
+			focusedModelStyle.Render(fmt.Sprintf("%4s", m.models[flagsView].View())),
+			modelStyle.Render(m.models[flagsView2].View()),
 		)
 		s += helpStyle.Render("\nenter: toggle flag")
 	} else if m.state == flagsView2 {
 		s += lipgloss.JoinVertical(
 			lipgloss.Top,
-			modelStyle.Render(fmt.Sprintf("%4s", m.flagsModel.View())),
-			focusedModelStyle.Render(m.flagsModel2.View()),
+			modelStyle.Render(fmt.Sprintf("%4s", m.models[flagsView].View())),
+			focusedModelStyle.Render(m.models[flagsView2].View()),
 		)
 	}
 	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")

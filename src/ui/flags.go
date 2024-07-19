@@ -31,7 +31,7 @@ func (m flagsModel) Init() tea.Cmd {
 }
 
 // placeholder code, this update function updates globally
-func (m flagsModel) Update(msg tea.Msg) (flagsModel, tea.Cmd) {
+func (m flagsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -41,8 +41,7 @@ func (m flagsModel) Update(msg tea.Msg) (flagsModel, tea.Cmd) {
 }
 
 // update code for only when focused
-func (m flagsModel) UpdateFocused(msg tea.Msg) (flagsModel, tea.Cmd) {
-
+func (m flagsModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
