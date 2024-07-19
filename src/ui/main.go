@@ -47,6 +47,7 @@ var (
 type mainModel struct {
 	state     sessionState
 	altscreen bool
+	quitting  bool
 	models    map[sessionState]tea.Model
 }
 
@@ -79,6 +80,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
+			m.quitting = true
 			return m, tea.Quit
 		case " ":
 			if m.altscreen {
@@ -120,6 +122,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainModel) View() string {
 	var s string
+
+	// clear screen on quit
+	if m.quitting {
+		return ""
+	}
+
 	if m.state == flagsView {
 		s += lipgloss.JoinVertical(
 			lipgloss.Top,
