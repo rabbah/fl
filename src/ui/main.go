@@ -2,10 +2,8 @@ package ui
 
 import (
 	"fl/helpers"
-	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 /*
@@ -26,22 +24,6 @@ type sessionState uint
 const (
 	flagsView sessionState = iota
 	flagsView2
-)
-
-// styling
-var (
-	// focus style
-	modelStyle = lipgloss.NewStyle().
-			Width(30).
-			Height(5).
-			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.HiddenBorder())
-	focusedModelStyle = lipgloss.NewStyle().
-				Width(30).
-				Height(5).
-				Align(lipgloss.Left, lipgloss.Left).
-				BorderStyle(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("69"))
 )
 
 type mainModel struct {
@@ -129,18 +111,11 @@ func (m mainModel) View() string {
 	}
 
 	if m.state == flagsView {
-		s += lipgloss.JoinVertical(
-			lipgloss.Top,
-			focusedModelStyle.Render(fmt.Sprintf("%4s", m.models[flagsView].View())),
-			modelStyle.Render(m.models[flagsView2].View()),
-		)
-		s += helpStyle.Render("\nenter: toggle flag")
+		help := "\nenter: toggle flag"
+		s += viewBuilder(m, setFocus(flagsStyle), flagsStyle, help)
 	} else if m.state == flagsView2 {
-		s += lipgloss.JoinVertical(
-			lipgloss.Top,
-			modelStyle.Render(fmt.Sprintf("%4s", m.models[flagsView].View())),
-			focusedModelStyle.Render(m.models[flagsView2].View()),
-		)
+		help := ""
+		s += viewBuilder(m, flagsStyle, setFocus(flagsStyle), help)
 	}
 	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")
 	return s
