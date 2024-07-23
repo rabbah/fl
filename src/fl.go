@@ -106,7 +106,7 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		err = ui.RunProgram(Flags)
+		err = ui.RunProgram(&Flags)
 		if err != nil {
 			fmt.Printf("Error running TUI: %v", err)
 			os.Exit(1)

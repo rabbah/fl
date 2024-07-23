@@ -33,15 +33,15 @@ type mainModel struct {
 	models    map[sessionState]tea.Model
 }
 
-func newModel() mainModel {
+func newModel(Flags *helpers.FlagStruct) mainModel {
 	m := mainModel{state: flagsView}
 	m.models = make(map[sessionState]tea.Model)
 	/* @IMPORTANT
 	 * make sure that the views added to the map are the SAME ORDER as the sessionstate declarations!!!
 	 * this ensures the map is sorted SEQUENTIALLY
 	 */
-	m.models[flagsView] = newFlagsModel()
-	m.models[flagsView2] = newFlagsModel()
+	m.models[flagsView] = newFlagsModel(Flags)
+	m.models[flagsView2] = newFlagsModel(Flags)
 	return m
 }
 
@@ -121,8 +121,8 @@ func (m mainModel) View() string {
 	return s
 }
 
-func RunProgram(Flags helpers.FlagStruct) (err error) {
-	initialModel := newModel()
+func RunProgram(Flags *helpers.FlagStruct) (err error) {
+	initialModel := newModel(Flags)
 	p := tea.NewProgram(initialModel)
 	_, err = p.Run()
 	return err

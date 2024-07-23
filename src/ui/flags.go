@@ -1,28 +1,67 @@
 package ui
 
 import (
+	"fl/helpers"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
-// styling
+// flag structure
+const (
+	autoexecute = iota
+	noexec
+)
+
 var (
-	flags     = []string{"output", "autoexecute"}
-	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	flags_allowed = []string{"autoexecute", "noexec"}
 )
 
-type flagsModel struct {
-	flags          []string
-	flags_cursor   int
-	flags_selected map[int]struct{}
+func (m flagsModel) flagsSelected(cursor int) (opts string, ok bool) {
+	switch cursor {
+	case autoexecute:
+		return "", m.flags.Autoexecute
+	case noexec:
+		return "", m.flags.Noexec
+	default:
+		return "", false
+	}
 }
 
-func newFlagsModel() flagsModel {
+func (m flagsModel) toggleFlag(cursor int) (newValue bool) {
+	switch cursor {
+	case autoexecute:
+		m.flags.Autoexecute = !m.flags.Autoexecute
+		return m.flags.Autoexecute
+	case noexec:
+		m.flags.Noexec = !m.flags.Noexec
+		return m.flags.Noexec
+	default:
+		return false
+	}
+}
+
+func (m flagsModel) validateFlags(cursor int) {
+	// check the mutual exclusive flags, flip the one not recently toggled
+	if m.flags.Autoexecute && m.flags.Noexec {
+		if cursor == autoexecute {
+			m.toggleFlag(noexec)
+		} else {
+			m.toggleFlag(autoexecute)
+		}
+	}
+}
+
+type flagsModel struct {
+	flags_allowed []string
+	flags_cursor  int
+	flags         *helpers.FlagStruct
+}
+
+func newFlagsModel(Flags *helpers.FlagStruct) flagsModel {
 	m := flagsModel{}
-	m.flags = flags
-	m.flags_selected = make(map[int]struct{})
+	m.flags = Flags
+	m.flags_allowed = flags_allowed
 	return m
 }
 
@@ -49,21 +88,17 @@ func (m flagsModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.flags_cursor > 0 {
 				m.flags_cursor--
 			} else {
-				m.flags_cursor = len(flags) - 1
+				m.flags_cursor = len(flags_allowed) - 1
 			}
 		case "j", "down":
-			if m.flags_cursor < len(flags)-1 {
+			if m.flags_cursor < len(flags_allowed)-1 {
 				m.flags_cursor++
 			} else {
 				m.flags_cursor = 0
 			}
 		case "enter":
-			_, ok := m.flags_selected[m.flags_cursor]
-			if ok {
-				delete(m.flags_selected, m.flags_cursor)
-			} else {
-				m.flags_selected[m.flags_cursor] = struct{}{}
-			}
+			m.toggleFlag(m.flags_cursor)
+			m.validateFlags(m.flags_cursor)
 		}
 	}
 
@@ -74,7 +109,7 @@ func (m flagsModel) View() string {
 	var s string
 
 	// Iterate over our choices
-	for i, choice := range m.flags {
+	for i, choice := range m.flags_allowed {
 
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
@@ -84,7 +119,7 @@ func (m flagsModel) View() string {
 
 		// Is this choice selected?
 		checked := " " // not selected
-		if _, ok := m.flags_selected[i]; ok {
+		if _, ok := m.flagsSelected(i); ok {
 			checked = "x" // selected!
 		}
 

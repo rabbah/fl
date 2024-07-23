@@ -8,12 +8,15 @@ import (
 
 // styling
 var (
-	// focus style
+	// specific models
 	flagsStyle = lipgloss.NewStyle().
 			Width(30).
 			Height(5).
 			Align(lipgloss.Left, lipgloss.Left).
 			BorderStyle(lipgloss.HiddenBorder())
+	// help
+	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	// extra effects
 	focusedModelStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.NormalBorder()).
 				BorderForeground(lipgloss.Color("69"))
