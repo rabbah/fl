@@ -30,7 +30,7 @@ func ConstructFlags() (Flags FlagStruct) {
 		Output:      false,
 		Outfile:     "",
 		Prompt:      "",
-		Len:         4,
+		Len:         6,
 	}
 }
 

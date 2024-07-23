@@ -182,17 +182,21 @@ func TestArgParseHelpMultipleFlags(t *testing.T) {
 	}
 }
 
-// test ArgParse with all flags + prompt
+// test ArgParse with all flags + prompt (except -h!)
 func TestArgParseAllFlags(t *testing.T) {
 	Flags := ConstructFlags()
 
 	prompt := "This is an example prompt"
-	cli_input := "fl -y -n -v" + " " + prompt
+	outfile := "outfile"
+	cli_input := "fl -y -n -v -o " + outfile + " -t" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || !Flags.Noexec || !Flags.Verbose {
-		t.Fatalf(`ArgParse("%s") yields flags %+v. Expected y: false, n: true, v: true`, cli_input, Flags)
+	if Flags.Autoexecute || !Flags.Noexec || !Flags.Verbose || Flags.Help || !Flags.Output || !Flags.Tui {
+		t.Fatalf(`ArgParse("%s") expects all and only the -n, -v, -o, -t flags. Actual: %+v`, cli_input, Flags)
 	}
 	if Flags.Prompt != prompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
+	}
+	if Flags.Outfile != outfile {
+		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, outfile)
 	}
 }
