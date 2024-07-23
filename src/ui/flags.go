@@ -8,21 +8,33 @@ import (
 )
 
 // flag structure
+// when adding flags for TUI support, update at minimum:
+// 1. this structure
+// 2. the var structure
+// 3. flagSelected
+// 4. toggleFlag
 const (
 	autoexecute = iota
 	noexec
+	output
 )
+
+// avoid prompting for input by specifying default outfile name
+const default_outfile_name = "fl.out"
 
 var (
-	flags_allowed = []string{"autoexecute", "noexec"}
+	flags_allowed = []string{"autoexecute", "noexec", "output"}
 )
 
+// return string for future opts
 func (m flagsModel) flagsSelected(cursor int) (opts string, ok bool) {
 	switch cursor {
 	case autoexecute:
 		return "", m.flags.Autoexecute
 	case noexec:
 		return "", m.flags.Noexec
+	case output:
+		return "", m.flags.Output
 	default:
 		return "", false
 	}
@@ -36,6 +48,9 @@ func (m flagsModel) toggleFlag(cursor int) (newValue bool) {
 	case noexec:
 		m.flags.Noexec = !m.flags.Noexec
 		return m.flags.Noexec
+	case output:
+		m.flags.Output = !m.flags.Output
+		return m.flags.Output
 	default:
 		return false
 	}
@@ -49,6 +64,11 @@ func (m flagsModel) validateFlags(cursor int) {
 		} else {
 			m.toggleFlag(autoexecute)
 		}
+	}
+
+	// provide default outfile name if not already given
+	if m.flags.Output && m.flags.Outfile == "" {
+		m.flags.Outfile = default_outfile_name
 	}
 }
 
@@ -124,7 +144,14 @@ func (m flagsModel) View() string {
 		}
 
 		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+		s += fmt.Sprintf("%s [%s] %s", cursor, checked, choice)
+
+		// add filename if row contains output and is selected
+		if i == output && m.flags.Output {
+			s += " " + m.flags.Outfile
+		}
+
+		s += "\n"
 	}
 
 	return s
