@@ -22,7 +22,8 @@ type sessionState uint
  * this ensures the map is sorted SEQUENTIALLY
  */
 const (
-	gptView sessionState = iota
+	uInputView sessionState = iota
+	gptView
 	flagsView
 )
 
@@ -40,8 +41,12 @@ func newModel(Flags *helpers.FlagStruct) mainModel {
 	 * make sure that the views added to the map are the SAME ORDER as the sessionstate declarations!!!
 	 * this ensures the map is sorted SEQUENTIALLY
 	 */
+	m.models[uInputView] = newUserInputModel()
 	m.models[gptView] = newGPTViewModel()
 	m.models[flagsView] = newFlagsModel(Flags)
+
+	// start with focus on the input (see constructor...)
+	m.state = uInputView
 	return m
 }
 
@@ -63,7 +68,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			m.quitting = true
-			return m, tea.Quit
+			// quit and exit fullscreen (terminal won't clear if in fullscreen)
+			return m, tea.Batch(tea.Quit, tea.ExitAltScreen)
 		case " ":
 			if m.altscreen {
 				cmd = tea.ExitAltScreen
@@ -94,6 +100,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case flagsView:
 		m.models[flagsView], cmd = m.models[flagsView].(flagsModel).UpdateFocused(msg)
 		cmds = append(cmds, cmd)
+	case uInputView:
+		m.models[uInputView], cmd = m.models[uInputView].(uInputModel).UpdateFocused(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -107,13 +116,18 @@ func (m mainModel) View() string {
 		return ""
 	}
 
-	if m.state == gptView {
-		help := ""
-		s += viewBuilder(m, setFocus(gptStyle), flagsStyle, help)
-	} else if m.state == flagsView {
+	help := ""
+	switch m.state {
+	case uInputView:
+		help := "\nenter: submit prompt"
+		s += viewBuilder(m, setFocus(uInputStyle), gptStyle, flagsStyle, help)
+	case gptView:
+		s += viewBuilder(m, uInputStyle, setFocus(gptStyle), flagsStyle, help)
+	case flagsView:
 		help := "\nenter: toggle flag • j/up: scroll up • k/down: scroll down"
-		s += viewBuilder(m, gptStyle, setFocus(flagsStyle), help)
+		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), help)
 	}
+
 	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")
 	return s
 }

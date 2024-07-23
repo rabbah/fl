@@ -13,7 +13,7 @@ type gptViewModel struct {
 func newGPTViewModel() gptViewModel {
 	m := gptViewModel{}
 	m.viewport = viewport.New(gptViewWidth, gptViewHeight)
-	m.viewport.SetContent("Describe the command you would like to generate...")
+	m.viewport.SetContent(gptPlaceholderTxt)
 	m.messages = []string{}
 	return m
 }
