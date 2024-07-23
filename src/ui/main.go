@@ -22,8 +22,8 @@ type sessionState uint
  * this ensures the map is sorted SEQUENTIALLY
  */
 const (
-	flagsView sessionState = iota
-	flagsView2
+	gptView sessionState = iota
+	flagsView
 )
 
 type mainModel struct {
@@ -40,8 +40,8 @@ func newModel(Flags *helpers.FlagStruct) mainModel {
 	 * make sure that the views added to the map are the SAME ORDER as the sessionstate declarations!!!
 	 * this ensures the map is sorted SEQUENTIALLY
 	 */
+	m.models[gptView] = newGPTViewModel()
 	m.models[flagsView] = newFlagsModel(Flags)
-	m.models[flagsView2] = newFlagsModel(Flags)
 	return m
 }
 
@@ -94,9 +94,6 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case flagsView:
 		m.models[flagsView], cmd = m.models[flagsView].(flagsModel).UpdateFocused(msg)
 		cmds = append(cmds, cmd)
-	case flagsView2:
-		m.models[flagsView2], cmd = m.models[flagsView2].(flagsModel).UpdateFocused(msg)
-		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -110,12 +107,12 @@ func (m mainModel) View() string {
 		return ""
 	}
 
-	if m.state == flagsView {
-		help := "\nenter: toggle flag"
-		s += viewBuilder(m, setFocus(flagsStyle), flagsStyle, help)
-	} else if m.state == flagsView2 {
+	if m.state == gptView {
 		help := ""
-		s += viewBuilder(m, flagsStyle, setFocus(flagsStyle), help)
+		s += viewBuilder(m, setFocus(gptStyle), flagsStyle, help)
+	} else if m.state == flagsView {
+		help := "\nenter: toggle flag • j/up: scroll up • k/down: scroll down"
+		s += viewBuilder(m, gptStyle, setFocus(flagsStyle), help)
 	}
 	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")
 	return s
