@@ -25,6 +25,13 @@ func (m gptViewModel) Init() tea.Cmd {
 func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	switch msg.(type) {
+	case userPromptMsg:
+		m.viewport.SetContent(
+			"prompt: " +
+				msg.(userPromptMsg).prompt,
+		)
+	}
 
 	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
