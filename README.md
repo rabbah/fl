@@ -3,9 +3,28 @@
 This command line tool, `fl`, is designed to convert natural language descriptions of command line tasks into valid Unix commands.
 It simplifies the process of executing tasks on a Unix command line by allowing users to describe their actions in plain language.
 
+## Installation
+
+Ensure that go's default install path is part of your path. Go's default path is `$HOME/go/bin`. Otherwise, run `./setup.sh` to fix your path in your `~.bashrc`  
+
+Next, run `./run.sh build` in order to build and install the binaries. Now you can activate with `fl` according to its usage.
+
 ## Usage
 
-To use `fl`, simply provide a natural language description of the task you want to perform, and the tool will generate the corresponding Unix command.
+To use `fl`, simply provide a natural language description of the task you want to perform, and the tool will generate the corresponding Unix command.  
+
+Other flags are available and example usage will be provided by passing the `-h` or `--help` flags.
+
+### Flag Explanations
+
+```sh
+Usage: fl [-hynv] prompt...
+ -h,--help              show command usage
+ -y                     autoexecute the generated command
+ -n                     do not prompt for or run generated command (takes priority over -y)
+ -v,--verbose           display updates of the command progress
+```
+
 Here are some sample calls for using `fl`:
 
 ### Sample Calls
