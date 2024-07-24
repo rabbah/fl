@@ -28,10 +28,17 @@ case "$1" in
         go run fl.go $@ $PROMPT
         popd > /dev/null
         ;;
+    "build")
+        # build fl binary and add to path
+        pushd src > /dev/null
+        go build -o fl
+        go install
+        popd > /dev/null
+        ;;
     *)
         echo "Invalid argument."
         echo "Usage:"
-        echo "  $0 {test|run [args]|rls [flags]}"
+        echo "  $0 {test|run [args]|rls [flags]|build}"
         exit 1
         ;;
 esac
