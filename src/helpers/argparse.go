@@ -14,6 +14,7 @@ import (
  */
 
 // global flag structure
+// SHOULD BE A SINGLETON
 type FlagStruct struct {
 	Verbose, Help, Autoexecute, Noexec, Tui, Output bool
 	Outfile, Prompt                                 string

@@ -134,13 +134,13 @@ func (m flagsModel) View() string {
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
 		if m.flags_cursor == i {
-			cursor = ">" // cursor!
+			cursor = flagsCursor // cursor!
 		}
 
 		// Is this choice selected?
 		checked := " " // not selected
 		if _, ok := m.flagsSelected(i); ok {
-			checked = "x" // selected!
+			checked = flagsSelected // selected!
 		}
 
 		// Render the row

@@ -66,11 +66,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "q", "esc":
 			m.quitting = true
 			// quit and exit fullscreen (terminal won't clear if in fullscreen)
 			return m, tea.Batch(tea.Quit, tea.ExitAltScreen)
-		case " ":
+		case "ctrl+f":
 			if m.altscreen {
 				cmd = tea.ExitAltScreen
 			} else {
@@ -128,7 +128,6 @@ func (m mainModel) View() string {
 		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), help)
 	}
 
-	s += helpStyle.Render("\ntab: focus next • q: exit • space: swap alt view\n")
 	return s
 }
 

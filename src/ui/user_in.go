@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -19,11 +21,11 @@ func newUserInputModel() uInputModel {
 	m.textarea = textarea.New()
 	m.textarea.Placeholder = uInputPlaceholderTxt
 
-	m.textarea.SetWidth(uInputWidth)
-	m.textarea.SetHeight(uInputHeight)
-
 	m.textarea.Prompt = uInputPrompt
 	m.textarea.CharLimit = uInputCharLimit
+
+	m.textarea.SetWidth(uInputWidth)
+	m.textarea.SetHeight(uInputHeight)
 
 	// the below are not expected to change so they are not moved to "styling"
 	m.textarea.Focus()
@@ -64,8 +66,11 @@ func (m uInputModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
+			str := m.textarea.Value()
 			// emit a signal containing prompt value
-			cmds = append(cmds, signalUserInput(m.textarea.Value()))
+			if strings.TrimSpace(str) != "" {
+				cmds = append(cmds, signalUserInput(str))
+			}
 		}
 	}
 

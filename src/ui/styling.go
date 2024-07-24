@@ -8,21 +8,25 @@ import (
 
 // avoid magic numbers in other files using these
 var (
-	flagsHeight = 3
-	flagsWidth  = 30
+	flagsHeight   = 5
+	flagsWidth    = 30
+	flagsCursor   = themeStyle.Render(">")
+	flagsSelected = themeStyle.Render("x")
 
-	gptViewHeight     = 4
+	gptViewHeight     = 6
 	gptViewWidth      = 60
 	gptPlaceholderTxt = "Waiting for prompt..."
 
-	uInputHeight         = 4
-	uInputWidth          = 90
+	uInputHeight         = 6
+	uInputWidth          = 80
 	uInputPlaceholderTxt = "Describe the command you would like to generate..."
-	uInputPrompt         = "┃ "
+	uInputPrompt         = themeStyle.Render("┃ ")
 	uInputCharLimit      = 1000
 
-	helpColor   = "241"
-	borderColor = "69"
+	mainHelp    = "tab: focus next • q: exit • ctrl+f: swap alt view"
+	helpColor   = postmanColor
+	borderColor = postmanColor
+	themeColor  = postmanColor
 )
 
 // styling
@@ -44,7 +48,11 @@ var (
 			Align(lipgloss.Left, lipgloss.Left).
 			BorderStyle(lipgloss.HiddenBorder())
 	// help
-	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(helpColor))
+	helpStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color(helpColor)).
+			Width(uInputWidth)
+	// themed styling
+	themeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(themeColor))
 	// extra effects
 	focusedModelStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.NormalBorder()).
@@ -61,16 +69,22 @@ func viewBuilder(m mainModel,
 	flagStyle lipgloss.Style,
 	help string,
 ) (render string) {
+
+	// main
 	render = lipgloss.JoinHorizontal(
-		lipgloss.Top,
+		lipgloss.Left,
 		gptStyle.Render(m.models[gptView].View()),
 		flagStyle.Render(fmt.Sprintf("%4s", m.models[flagsView].View())),
 	)
 	render = lipgloss.JoinVertical(
-		lipgloss.Top,
+		lipgloss.Left,
 		render,
 		uInputStyle.Render(m.models[uInputView].View()),
 	)
-	render += helpStyle.Render(help)
+
+	// help
+	render = lipgloss.JoinVertical(lipgloss.Top, render, helpStyle.Render(help))
+	render = lipgloss.JoinVertical(lipgloss.Top, render, helpStyle.Render(mainHelp))
+
 	return render
 }
