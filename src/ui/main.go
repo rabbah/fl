@@ -68,8 +68,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
 			m.quitting = true
+			if m.altscreen {
+				cmds = append(cmds, tea.ExitAltScreen)
+			}
+			cmds = append(cmds, tea.ClearScreen, tea.Quit)
 			// clear screen and quit!
-			return m, tea.Batch(tea.ClearScreen, tea.Quit)
+			return m, tea.Batch(cmds...)
 		case "ctrl+f":
 			if m.altscreen {
 				cmd = tea.ExitAltScreen
@@ -110,6 +114,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainModel) View() string {
 	var s string
+
+	if m.quitting {
+		return ""
+	}
 
 	help := ""
 	switch m.state {
