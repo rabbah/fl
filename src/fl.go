@@ -10,10 +10,7 @@ import (
 	"os"
 )
 
-/**********************
- * globals
- *********************/
-
+// REMOVE THIS LATER
 const (
 	// url of the Flow endpoint
 	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
