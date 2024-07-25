@@ -126,8 +126,18 @@ func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 
 func (m gptViewModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if m.state == waitForUserCommandExec {
+			m, cmd = m.updateExecPrompt(msg)
+			cmds = append(cmds, cmd)
+		}
+	}
+
 	m.viewport, cmd = m.viewport.Update(msg)
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -140,10 +150,6 @@ func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case webCmdGenMsg:
 		if m.state == waitForCommand {
 			m, cmd = m.updateCommand(msg)
-		}
-	case tea.KeyMsg:
-		if m.state == waitForUserCommandExec {
-			m, cmd = m.updateExecPrompt(msg)
 		}
 	case cmdExecMsg:
 		if m.state == waitForCommandExec {
