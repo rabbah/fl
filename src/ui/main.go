@@ -34,6 +34,17 @@ type mainModel struct {
 	models    map[sessionState]tea.Model
 }
 
+// message for request a change in state from one model to another
+type changeModelFocusMsg struct {
+	newState sessionState
+}
+
+func changeModelFocus(newState sessionState) tea.Cmd {
+	return func() tea.Msg {
+		return changeModelFocusMsg{newState: newState}
+	}
+}
+
 func newModel(Flags *helpers.FlagStruct) mainModel {
 	m := mainModel{state: flagsView}
 	m.models = make(map[sessionState]tea.Model)
@@ -88,7 +99,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.models[m.state] == nil {
 				m.state = 0
 			}
+			return m, cmd
 		}
+	case changeModelFocusMsg:
+		m.state = msg.newState
+		return m, cmd
 	}
 
 	// global updates for subviews (for spinners etc)

@@ -70,6 +70,7 @@ func (m uInputModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// emit a signal containing prompt value
 			if strings.TrimSpace(str) != "" {
 				cmds = append(cmds, signalUserInput(str))
+				cmds = append(cmds, changeModelFocus(gptView))
 			}
 		}
 	}

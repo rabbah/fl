@@ -95,20 +95,26 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 }
 
 func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
-	var cmd tea.Cmd = nil
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg.String() {
 	case "enter":
 		m.state = waitForCommandExec
 		m.content = ""
+		// request command execution
 		cmd = execCmd(m.command)
-	case "tab":
-		// ignore characters that have a function which user is unlikely to use for "no"
+		cmds = append(cmds, cmd)
 	default:
 		m.state = waitForPrompt
 		m.content = "Waiting for next prompt..."
+		// dont issue command
 	}
+	// change the model's focus
+	cmd = changeModelFocus(uInputView)
+	cmds = append(cmds, cmd)
+
 	m.viewport.SetContent(m.content)
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
