@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fl/exec"
 	"fl/web"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -33,6 +34,12 @@ type webCmdGenMsg struct {
 	err error
 }
 
+// message event for command execution
+type cmdExecMsg struct {
+	res string
+	err error
+}
+
 func newGPTViewModel() gptViewModel {
 	m := gptViewModel{}
 	m.viewport = viewport.New(gptViewWidth, gptViewHeight)
@@ -56,6 +63,13 @@ func sendPrompt(prompt string) tea.Cmd {
 	}
 }
 
+func execCmd(prompt string) tea.Cmd {
+	return func() tea.Msg {
+		res, err := exec.Exec(prompt)
+		return cmdExecMsg{res, err}
+	}
+}
+
 func (m gptViewModel) updatePrompt(msg userPromptMsg) (gptViewModel, tea.Cmd) {
 	m.prompt = msg.prompt
 	m.content = "Prompt: " + m.prompt
@@ -69,6 +83,7 @@ func (m gptViewModel) updatePrompt(msg userPromptMsg) (gptViewModel, tea.Cmd) {
 func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 	if msg.err != nil {
 		m.command = "Something went wrong when generating command!"
+		// should be logged!
 	} else {
 		m.command = msg.res
 	}
@@ -80,15 +95,30 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 }
 
 func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
+	var cmd tea.Cmd = nil
 	switch msg.String() {
 	case "enter":
 		m.state = waitForCommandExec
 		m.content = ""
+		cmd = execCmd(m.command)
 	default:
 		m.state = waitForPrompt
 		m.content = "Waiting for next prompt..."
 	}
 	m.viewport.SetContent(m.content)
+	return m, cmd
+}
+
+func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
+	if msg.err != nil {
+		m.output = "Something went wrong when executing command!"
+		// should be logged!
+	} else {
+		m.output = msg.res
+	}
+	m.content = m.output
+	m.viewport.SetContent(m.content)
+	m.state = waitForPrompt
 	return m, nil
 }
 
@@ -109,6 +139,11 @@ func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.state == waitForUserCommandExec {
 			m, cmd = m.updateExecPrompt(msg)
+			cmds = append(cmds, cmd)
+		}
+	case cmdExecMsg:
+		if m.state == waitForCommandExec {
+			m, cmd = m.updateExec(msg)
 			cmds = append(cmds, cmd)
 		}
 	}
