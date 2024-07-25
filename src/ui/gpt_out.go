@@ -87,7 +87,7 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 	} else {
 		m.command = msg.res
 	}
-	m.content = m.content + "\n\nCommand: " + m.command
+	m.content = m.content + "\n\n" + m.command
 	m.content = m.content + "\n\nDo you wish to execute the above? (enter = yes, anything else = no)"
 	m.viewport.SetContent(m.content)
 	m.state = waitForUserCommandExec
@@ -101,6 +101,8 @@ func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
 		m.state = waitForCommandExec
 		m.content = ""
 		cmd = execCmd(m.command)
+	case "tab":
+		// ignore characters that have a function which user is unlikely to use for "no"
 	default:
 		m.state = waitForPrompt
 		m.content = "Waiting for next prompt..."
@@ -122,36 +124,34 @@ func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 	return m, nil
 }
 
+func (m gptViewModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.viewport, cmd = m.viewport.Update(msg)
+	return m, cmd
+}
+
 func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case userPromptMsg:
 		if m.state == waitForPrompt {
 			m, cmd = m.updatePrompt(msg)
-			cmds = append(cmds, cmd)
 		}
 	case webCmdGenMsg:
 		if m.state == waitForCommand {
 			m, cmd = m.updateCommand(msg)
-			cmds = append(cmds, cmd)
 		}
 	case tea.KeyMsg:
 		if m.state == waitForUserCommandExec {
 			m, cmd = m.updateExecPrompt(msg)
-			cmds = append(cmds, cmd)
 		}
 	case cmdExecMsg:
 		if m.state == waitForCommandExec {
 			m, cmd = m.updateExec(msg)
-			cmds = append(cmds, cmd)
 		}
 	}
 
-	m.viewport, cmd = m.viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
+	return m, cmd
 }
 
 func (m gptViewModel) View() string {

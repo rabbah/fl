@@ -107,6 +107,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case uInputView:
 		m.models[uInputView], cmd = m.models[uInputView].(uInputModel).UpdateFocused(msg)
 		cmds = append(cmds, cmd)
+	case gptView:
+		m.models[gptView], cmd = m.models[gptView].(gptViewModel).UpdateFocused(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)

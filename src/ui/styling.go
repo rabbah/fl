@@ -8,17 +8,17 @@ import (
 
 // avoid magic numbers in other files using these
 var (
-	flagsHeight   = 5
+	flagsHeight   = 10
 	flagsWidth    = 30
 	flagsCursor   = themeStyle.Render(">")
 	flagsSelected = themeStyle.Render("x")
 
-	gptViewHeight     = 6
+	gptViewHeight     = 10
 	gptViewWidth      = 60
 	gptPlaceholderTxt = "Waiting for prompt..."
 
-	uInputHeight         = 6
-	uInputWidth          = 80
+	uInputHeight         = 2
+	uInputWidth          = 110
 	uInputPlaceholderTxt = "Describe the command you would like to generate..."
 	uInputPrompt         = themeStyle.Render("┃ ")
 	uInputCharLimit      = 1000
