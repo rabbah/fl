@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fl/exec"
-	"fl/helpers"
-	"fl/io"
-	"fl/web"
-	"fmt"
-	"os"
+  "fl/exec"
+  "fl/helpers"
+  "fl/io"
+  "fl/web"
+  "fmt"
+  "os"
+  "golang.design/x/clipboard"
 )
 
 /**********************
@@ -14,9 +15,17 @@ import (
  *********************/
 
 const (
-	// url of the Flow endpoint
-	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
+  // url of the Flow endpoint
+  apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
 )
+
+func init() {
+  err := clipboard.Init()
+  if err != nil {
+    fmt.Println("Failed to initializr clipboard.")
+    panic(err)
+  }
+}
 
 /**********************
  * main
@@ -24,75 +33,77 @@ const (
 
 func main() {
 
-	// initialize flags struct
-	Flags := helpers.ConstructFlags()
+  // initialize flags struct
+  Flags := helpers.ConstructFlags()
 
-	// parse arguments and recieve prompt
-	err := helpers.ArgParse(os.Args, &Flags)
+  // parse arguments and recieve prompt
+  err := helpers.ArgParse(os.Args, &Flags)
 
-	// exit if -h/--help flags found
-	if Flags.Help {
-		// handler for when --help or -h are provided
-		helpers.Usage()
-		os.Exit(0)
-	}
+  // exit if -h/--help flags found
+  if Flags.Help {
+    // handler for when --help or -h are provided
+    helpers.Usage()
+    os.Exit(0)
+  }
 
-	if err != nil {
-		fmt.Printf("Parse error: %s\n", err)
-		helpers.Usage()
-		os.Exit(1)
-	}
+  if err != nil {
+    fmt.Printf("Parse error: %s\n", err)
+    helpers.Usage()
+    os.Exit(1)
+  }
 
-	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
+  helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
-	// Make the API call
-	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, Flags.Prompt)
-	if err != nil {
-		fmt.Printf("Failed to call Flows API: %s\n", err)
-		os.Exit(1)
-	}
-	defer res.Body.Close()
+  // Make the API call
+  helpers.Print(Flags.Verbose, "Sending prompt...")
+  res, err := web.PromptAI(apiUrl, Flags.Prompt)
+  if err != nil {
+    fmt.Printf("Failed to call Flows API: %s\n", err)
+    os.Exit(1)
+  }
+  defer res.Body.Close()
 
-	// Parse the response body as JSON
-	helpers.Print(Flags.Verbose, "Parsing response...")
-	result, err := web.ParseResponse(res)
-	if err != nil {
-		fmt.Printf(result, err)
-		os.Exit(1)
-	}
+  // Parse the response body as JSON
+  helpers.Print(Flags.Verbose, "Parsing response...")
+  result, err := web.ParseResponse(res)
+  if err != nil {
+    fmt.Printf(result, err)
+    os.Exit(1)
+  }
 
-	// Emit the result
-	helpers.Print(Flags.Verbose, "Output: \n")
-	fmt.Println(result)
-	fmt.Println()
+  // Emit the result
+  helpers.Print(Flags.Verbose, "Output: \n")
+  fmt.Println(result)
+  fmt.Println()
 
-	// if not skipping prompt, ask user if they would like to execute
-	userExecute := false
-	if !Flags.Noexec && !Flags.Autoexecute {
-		userExecute = exec.PromptExec()
-	}
+  clipboard.Write(clipboard.FmtText, []byte(result))
 
-	// perform the command if autoexecute enabled or user prompted to exec
-	if Flags.Autoexecute || userExecute {
-		helpers.Print(Flags.Verbose, "Executing the result...")
+  // if not skipping prompt, ask user if they would like to execute
+  userExecute := false
+  if !Flags.Noexec && !Flags.Autoexecute {
+    userExecute = exec.PromptExec()
+  }
 
-		out, err := exec.Exec(result)
+  // perform the command if autoexecute enabled or user prompted to exec
+  if Flags.Autoexecute || userExecute {
+    helpers.Print(Flags.Verbose, "Executing the result...")
 
-		if err != nil {
-			panic(err)
-		}
+    out, err := exec.Exec(result)
 
-		// Print the output
-		fmt.Println(out)
-	}
+    if err != nil {
+      panic(err)
+    }
 
-	if Flags.Output {
-		err := io.Output(Flags.Outfile, result)
+    // Print the output
+    fmt.Println(out)
+  }
 
-		if err != nil {
-			fmt.Printf("Failed save output to file: %s\n", err)
-			os.Exit(1)
-		}
-	}
+  if Flags.Output {
+    err := io.Output(Flags.Outfile, result)
+
+    if err != nil {
+      fmt.Printf("Failed save output to file: %s\n", err)
+      os.Exit(1)
+    }
+  }
 }
