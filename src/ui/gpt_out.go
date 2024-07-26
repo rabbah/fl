@@ -3,6 +3,7 @@ package ui
 import (
 	"fl/exec"
 	"fl/helpers"
+	"fl/io"
 	"fl/web"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -39,6 +40,11 @@ type webCmdGenMsg struct {
 // message event for command execution
 type cmdExecMsg struct {
 	res string
+	err error
+}
+
+// message for tracking output err
+type cmdOutputErr struct {
 	err error
 }
 
@@ -84,6 +90,17 @@ func execCmd(prompt string) tea.Cmd {
 	return func() tea.Msg {
 		res, err := exec.Exec(prompt)
 		return cmdExecMsg{res, err}
+	}
+}
+
+func saveOutput(outfile string, data string) tea.Cmd {
+	return func() tea.Msg {
+		err := io.Output(outfile, data)
+		if err != nil {
+			return cmdOutputErr{err}
+		} else {
+			return nil
+		}
 	}
 }
 
@@ -157,11 +174,12 @@ func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
 }
 
 func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
+	var cmd tea.Cmd
+
 	if msg.err != nil {
 		// err. restart state machine
 		m.content = "Something went wrong when executing command! " + gptPlaceholderTxt
 		m.output = ""
-		m.state = waitForPrompt
 		m.viewport.SetContent(m.content)
 		return m, changeModelFocus(uInputView)
 		// should be logged!
@@ -170,10 +188,25 @@ func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 	} else {
 		m.output = msg.res
 	}
+
 	m.content = m.output
 	m.viewport.SetContent(m.content)
 	m.state = waitForPrompt
-	return m, nil
+
+	if m.Flags.Output {
+		cmd = saveOutput(m.Flags.Outfile, m.command)
+	}
+
+	return m, cmd
+}
+
+func (m gptViewModel) updateOutputExecErr(msg cmdOutputErr) (gptViewModel, tea.Cmd) {
+	// err. restart state machine
+	m.content = "Something went wrong when saving output! " + gptPlaceholderTxt
+	m.state = waitForPrompt
+	m.viewport.SetContent(m.content)
+	return m, changeModelFocus(uInputView)
+	// should be logged!
 }
 
 func (m gptViewModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -207,6 +240,8 @@ func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.state == waitForCommandExec {
 			m, cmd = m.updateExec(msg)
 		}
+	case cmdOutputErr:
+		m, cmd = m.updateOutputExecErr(msg)
 	}
 
 	return m, cmd
