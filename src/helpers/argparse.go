@@ -92,6 +92,14 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 }
 
 /**********************
+ * Other parse helpers
+ *********************/
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == ""
+}
+
+/**********************
  * ArgParse
  *********************/
 

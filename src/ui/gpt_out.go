@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fl/exec"
+	"fl/helpers"
 	"fl/web"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -40,19 +41,31 @@ type cmdExecMsg struct {
 	err error
 }
 
-func newGPTViewModel() gptViewModel {
+func newGPTViewModel(prompt string) gptViewModel {
 	m := gptViewModel{}
 	m.viewport = viewport.New(gptViewWidth, gptViewHeight)
-	m.viewport.SetContent(gptPlaceholderTxt)
-	m.state = waitForPrompt
-	m.content = ""
-	m.prompt = ""
+	// use placeholder if prompt not passed through CLI
+	if prompt != "" {
+		m.content = "Prompt: " + prompt
+		// wait for command to be generated (signal is sent with Init)
+		m.state = waitForCommand
+
+	} else {
+		m.content = gptPlaceholderTxt
+		// wait for user executing prompt
+		m.state = waitForPrompt
+	}
+	m.prompt = prompt
+	m.viewport.SetContent(m.content)
 	m.command = ""
 	m.output = ""
 	return m
 }
 
 func (m gptViewModel) Init() tea.Cmd {
+	if m.prompt != "" {
+		return sendPrompt(m.prompt)
+	}
 	return nil
 }
 
@@ -87,31 +100,34 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 	} else {
 		m.command = msg.res
 	}
+	m.content = m.content + "\n\nDo you wish to execute the below? (y/n)"
 	m.content = m.content + "\n\n" + m.command
-	m.content = m.content + "\n\nDo you wish to execute the above? (enter = yes, anything else = no)"
 	m.viewport.SetContent(m.content)
 	m.state = waitForUserCommandExec
 	return m, nil
 }
 
 func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
-	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg.String() {
-	case "enter":
+	case "y":
 		m.state = waitForCommandExec
 		m.content = ""
-		// request command execution
-		cmd = execCmd(m.command)
-		cmds = append(cmds, cmd)
-	default:
+		// request command execution & change state
+		cmds = append(cmds,
+			execCmd(m.command),
+			changeModelFocus(uInputView),
+		)
+	case "n":
 		m.state = waitForPrompt
 		m.content = "Waiting for next prompt..."
-		// dont issue command
+		// only restart state and change focus
+		cmds = append(cmds,
+			changeModelFocus(uInputView),
+		)
+	default:
+		// dont issue command or change state
 	}
-	// change the model's focus
-	cmd = changeModelFocus(uInputView)
-	cmds = append(cmds, cmd)
 
 	m.viewport.SetContent(m.content)
 	return m, tea.Batch(cmds...)
@@ -121,6 +137,8 @@ func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 	if msg.err != nil {
 		m.output = "Something went wrong when executing command!"
 		// should be logged!
+	} else if helpers.IsEmpty(msg.res) {
+		m.output = "Command response was empty"
 	} else {
 		m.output = msg.res
 	}

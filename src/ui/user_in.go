@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"strings"
+	"fl/helpers"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -68,7 +68,7 @@ func (m uInputModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			str := m.textarea.Value()
 			// emit a signal containing prompt value
-			if strings.TrimSpace(str) != "" {
+			if !helpers.IsEmpty(str) {
 				cmds = append(cmds, signalUserInput(str))
 				cmds = append(cmds, changeModelFocus(gptView))
 			}
