@@ -83,7 +83,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q", "esc":
+		case "ctrl+c", "esc":
 			m.quitting = true
 			if m.altscreen {
 				cmds = append(cmds, tea.ExitAltScreen)
@@ -105,11 +105,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.models[m.state] == nil {
 				m.state = 0
 			}
-			return m, cmd
+			// do not return, still need to update states
 		}
 	case changeModelFocusMsg:
 		m.state = msg.newState
-		return m, cmd
 	}
 
 	// global updates for subviews (for spinners etc)
@@ -121,15 +120,20 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// focused updates for subviews (for items allowed only in focus)
 	// must explicitly define as UpdateFocused is not part of the tea.Model interface
+	// also, blur the cursors on UNFOCUSED items
 	switch m.state {
 	case flagsView:
 		m.models[flagsView], cmd = m.models[flagsView].(flagsModel).UpdateFocused(msg)
+		m.models[uInputView] = m.models[uInputView].(uInputModel).BlurUnfocused()
 		cmds = append(cmds, cmd)
 	case uInputView:
 		m.models[uInputView], cmd = m.models[uInputView].(uInputModel).UpdateFocused(msg)
+		m.models[flagsView] = m.models[flagsView].(flagsModel).BlurUnfocused()
 		cmds = append(cmds, cmd)
 	case gptView:
 		m.models[gptView], cmd = m.models[gptView].(gptViewModel).UpdateFocused(msg)
+		m.models[flagsView] = m.models[flagsView].(flagsModel).BlurUnfocused()
+		m.models[uInputView] = m.models[uInputView].(uInputModel).BlurUnfocused()
 		cmds = append(cmds, cmd)
 	}
 
@@ -151,7 +155,7 @@ func (m mainModel) View() string {
 	case gptView:
 		s += viewBuilder(m, uInputStyle, setFocus(gptStyle), flagsStyle, help)
 	case flagsView:
-		help := "\nenter: toggle flag • j/up: scroll up • k/down: scroll down"
+		help := "\nenter: toggle flag • up: scroll up • down: scroll down"
 		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), help)
 	}
 

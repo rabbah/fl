@@ -23,7 +23,7 @@ var (
 	uInputPrompt         = themeStyle.Render("┃ ")
 	uInputCharLimit      = 1000
 
-	mainHelp    = "tab: focus next • q: exit • ctrl+f: swap alt view"
+	mainHelp    = "tab: focus next • esc: exit • ctrl+f: swap alt view"
 	helpColor   = postmanColor
 	borderColor = postmanColor
 	themeColor  = postmanColor

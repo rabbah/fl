@@ -28,15 +28,13 @@ func newUserInputModel() uInputModel {
 	m.textarea.SetHeight(uInputHeight)
 
 	// the below are not expected to change so they are not moved to "styling"
-	m.textarea.Focus()
-
 	m.textarea.ShowLineNumbers = false
 	m.textarea.KeyMap.InsertNewline.SetEnabled(false)
 	return m
 }
 
 func (m uInputModel) Init() tea.Cmd {
-	return textarea.Blink
+	return nil
 }
 
 func signalUserInput(prompt string) tea.Cmd {
@@ -59,6 +57,12 @@ func (m uInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// blur the cursors when unfocused
+func (m uInputModel) BlurUnfocused() uInputModel {
+	m.textarea.Blur()
+	return m
+}
+
 func (m uInputModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -74,6 +78,8 @@ func (m uInputModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
+
+	m.textarea.Focus()
 
 	m.textarea, cmd = m.textarea.Update(msg)
 	cmds = append(cmds, cmd)
