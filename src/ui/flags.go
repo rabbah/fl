@@ -104,13 +104,13 @@ func (m flagsModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "k", "up":
+		case "j", "up":
 			if m.flags_cursor > 0 {
 				m.flags_cursor--
 			} else {
 				m.flags_cursor = len(flags_allowed) - 1
 			}
-		case "j", "down":
+		case "k", "down":
 			if m.flags_cursor < len(flags_allowed)-1 {
 				m.flags_cursor++
 			} else {

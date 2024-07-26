@@ -53,7 +53,7 @@ func newModel(Flags *helpers.FlagStruct) mainModel {
 	 * this ensures the map is sorted SEQUENTIALLY
 	 */
 	m.models[uInputView] = newUserInputModel()
-	m.models[gptView] = newGPTViewModel(Flags.Prompt)
+	m.models[gptView] = newGPTViewModel(Flags)
 	m.models[flagsView] = newFlagsModel(Flags)
 
 	// if prompt supplied through cli, focus on gpt output

@@ -23,6 +23,7 @@ const (
 type gptViewModel struct {
 	viewport viewport.Model
 	state    gptViewState
+	Flags    *helpers.FlagStruct
 	content  string
 	prompt   string
 	command  string
@@ -41,9 +42,11 @@ type cmdExecMsg struct {
 	err error
 }
 
-func newGPTViewModel(prompt string) gptViewModel {
+func newGPTViewModel(Flags *helpers.FlagStruct) gptViewModel {
 	m := gptViewModel{}
 	m.viewport = viewport.New(gptViewWidth, gptViewHeight)
+	// Flags is a shared global - do NOT rely on for setting the on-screen prompt or m.prompt
+	prompt := Flags.Prompt
 	// use placeholder if prompt not passed through CLI
 	if prompt != "" {
 		m.content = "Prompt: " + prompt
@@ -55,6 +58,7 @@ func newGPTViewModel(prompt string) gptViewModel {
 		// wait for user executing prompt
 		m.state = waitForPrompt
 	}
+	m.Flags = Flags
 	m.prompt = prompt
 	m.viewport.SetContent(m.content)
 	m.command = ""
@@ -95,16 +99,35 @@ func (m gptViewModel) updatePrompt(msg userPromptMsg) (gptViewModel, tea.Cmd) {
 
 func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 	if msg.err != nil {
-		m.command = "Something went wrong when generating command!"
+		// err. restart state machine
+		m.content = "Something went wrong when generating command! " + gptPlaceholderTxt
+		m.command = ""
+		m.state = waitForPrompt
+		m.viewport.SetContent(m.content)
+		return m, changeModelFocus(uInputView)
 		// should be logged!
 	} else {
 		m.command = msg.res
 	}
-	m.content = m.content + "\n\nDo you wish to execute the below? (y/n)"
-	m.content = m.content + "\n\n" + m.command
-	m.viewport.SetContent(m.content)
-	m.state = waitForUserCommandExec
-	return m, nil
+
+	if m.Flags.Autoexecute {
+		// skip asking for user input (and execute command + change focus)
+		m.state = waitForCommandExec
+		return m, tea.Batch(execCmd(m.command), changeModelFocus(uInputView))
+	} else if m.Flags.Noexec {
+		// skip asking for user input (dont execute command but change focus)
+		m.content = m.command
+		m.viewport.SetContent(m.content)
+		m.state = waitForPrompt
+		return m, changeModelFocus(uInputView)
+	} else {
+		// change to prompt user state
+		m.content = m.content + "\n\nDo you wish to execute the below? (y/n)"
+		m.content = m.content + "\n\n" + m.command
+		m.viewport.SetContent(m.content)
+		m.state = waitForUserCommandExec
+		return m, nil
+	}
 }
 
 func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
@@ -135,7 +158,12 @@ func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
 
 func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 	if msg.err != nil {
-		m.output = "Something went wrong when executing command!"
+		// err. restart state machine
+		m.content = "Something went wrong when executing command! " + gptPlaceholderTxt
+		m.output = ""
+		m.state = waitForPrompt
+		m.viewport.SetContent(m.content)
+		return m, changeModelFocus(uInputView)
 		// should be logged!
 	} else if helpers.IsEmpty(msg.res) {
 		m.output = "Command response was empty"
