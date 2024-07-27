@@ -6,8 +6,9 @@ import (
 	"fl/io"
 	"fl/web"
 	"fmt"
-	"golang.design/x/clipboard"
 	"os"
+
+	"golang.design/x/clipboard"
 )
 
 /**********************
@@ -22,7 +23,7 @@ const (
 func init() {
 	err := clipboard.Init()
 	if err != nil {
-		fmt.Println("Failed to initializr clipboard.")
+		fmt.Println("Failed to initialize clipboard.")
 		panic(err)
 	}
 }
