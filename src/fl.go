@@ -8,6 +8,8 @@ import (
 	"fl/web"
 	"fmt"
 	"os"
+
+	"golang.design/x/clipboard"
 )
 
 // REMOVE THIS LATER
@@ -15,6 +17,14 @@ const (
 	// url of the Flow endpoint
 	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
 )
+
+func init() {
+	err := clipboard.Init()
+	if err != nil {
+		fmt.Println("Failed to initializr clipboard.")
+		panic(err)
+	}
+}
 
 /**********************
  * fl in-line execution
@@ -45,6 +55,8 @@ func noTui(Flags helpers.FlagStruct) {
 	helpers.Print(Flags.Verbose, "Output: \n")
 	fmt.Println(result)
 	fmt.Println()
+
+	clipboard.Write(clipboard.FmtText, []byte(result))
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
