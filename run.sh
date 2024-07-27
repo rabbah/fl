@@ -11,6 +11,7 @@ case "$1" in
     "build")
         # build fl binary
         pushd src > /dev/null
+        go get fl
         go build -o fl
         popd > /dev/null
         ;;
