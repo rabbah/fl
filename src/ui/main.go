@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fl/helpers"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -30,7 +29,6 @@ const (
 
 type mainModel struct {
 	state     sessionState
-	starting  bool
 	altscreen bool
 	quitting  bool
 	models    map[sessionState]tea.Model
@@ -57,7 +55,6 @@ func newModel(Flags *helpers.FlagStruct) mainModel {
 	m.models[uInputView] = newUserInputModel()
 	m.models[gptView] = newGPTViewModel(Flags)
 	m.models[flagsView] = newFlagsModel(Flags)
-	m.starting = true
 
 	// if prompt supplied through cli, focus on gpt output
 	if Flags.Prompt != "" {
@@ -81,12 +78,6 @@ func (m mainModel) Init() tea.Cmd {
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	// sleep the program on the first state
-	if m.starting {
-		m.starting = false
-		time.Sleep(time.Second)
-	}
 
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -168,6 +159,7 @@ func (m mainModel) appView() string {
 	return s
 }
 
+// @TODO reimplement as starting state
 func (m mainModel) startView() string {
 
 	s := themeStyle.Render(logo)
@@ -182,11 +174,7 @@ func (m mainModel) View() string {
 		return ""
 	}
 
-	if m.starting {
-		s = m.startView()
-	} else {
-		s = m.appView()
-	}
+	s = m.appView()
 
 	return s
 }
