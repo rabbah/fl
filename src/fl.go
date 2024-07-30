@@ -70,7 +70,8 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	if Config.Autoexec || userExecute {
 		helpers.Print(Flags.Verbose, "Executing the result...")
 
-		out, err := exec.Exec(result)
+		Cmd := exec.Command(result)
+		out, err := Cmd.Exec()
 
 		if err != nil {
 			panic(err)
