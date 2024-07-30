@@ -26,6 +26,35 @@ func TestQuotes(t *testing.T) {
 	}
 }
 
+// test cmd gen when using <<<
+func TestStdIn(t *testing.T) {
+	cmd_str := "tr A-Z a-z <<< TeSTsTrIng"
+	expected_cmd := "tr A-Z a-z <<< TeSTsTrIng"
+	expected_result := "teststring"
+
+	Cmd := Command(cmd_str)
+
+	generated_cmd := Cmd.Cmd.String()
+	match, err := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match || err != nil {
+		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
+	}
+
+	generated_result, err := Cmd.Exec()
+	if generated_result != expected_result || err != nil {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
+	}
+}
+
+/*
+ * @TODO:
+ * multiline
+ * > >> |
+ * ;
+ * && ||
+ * ~ $HOME
+ */
+
 // create a testfile using EXEC, check command with flags
 func TestExecution(t *testing.T) {
 	filename := "TESTFILE"
