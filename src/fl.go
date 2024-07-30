@@ -37,8 +37,16 @@ func main() {
 	// initialize flags struct
 	Flags := helpers.ConstructFlags()
 
+	// get config data
+	Config, err := io.ReadConf()
+	if err != nil {
+		fmt.Printf("Config read error: %s\n", err)
+		helpers.Usage()
+		os.Exit(1)
+	}
+
 	// parse arguments and recieve prompt
-	err := helpers.ArgParse(os.Args, &Flags)
+	err = helpers.ArgParse(os.Args, &Flags)
 
 	// exit if -h/--help flags found
 	if Flags.Help {
@@ -81,12 +89,12 @@ func main() {
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
-	if !Flags.Noexec && !Flags.Autoexecute {
+	if !Flags.Noexec && !Config.Autoexec {
 		userExecute = exec.PromptExec()
 	}
 
 	// perform the command if autoexecute enabled or user prompted to exec
-	if Flags.Autoexecute || userExecute {
+	if Config.Autoexec || userExecute {
 		helpers.Print(Flags.Verbose, "Executing the result...")
 
 		out, err := exec.Exec(result)
