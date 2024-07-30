@@ -15,21 +15,21 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, Autoexecute, Noexec, Output bool
-	Outfile, Prompt                            string
-	Len                                        int
+	Verbose, Help, Noexec, Tui, Output bool
+	Outfile, Prompt                    string
+	Len                                int
 }
 
 func ConstructFlags() (Flags FlagStruct) {
 	return FlagStruct{
-		Verbose:     false,
-		Help:        false,
-		Autoexecute: false,
-		Noexec:      false,
-		Output:      false,
-		Outfile:     "",
-		Prompt:      "",
-		Len:         4,
+		Verbose: false,
+		Help:    false,
+		Noexec:  false,
+		Tui:     false,
+		Output:  false,
+		Outfile: "",
+		Prompt:  "",
+		Len:     5,
 	}
 }
 
@@ -62,11 +62,6 @@ func flagsHandlerHelp(Flags *FlagStruct, startPromptIndex *int) {
 func flagsHandlerVerbose(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
 	Flags.Verbose = true
-}
-
-func flagsHandlerAutoexecute(Flags *FlagStruct, startPromptIndex *int) {
-	*startPromptIndex++
-	Flags.Autoexecute = true
 }
 
 func flagsHandlerNoexec(Flags *FlagStruct, startPromptIndex *int) {
@@ -112,8 +107,6 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			fallthrough
 		case "--verbose":
 			flagsHandlerVerbose(Flags, &startPromptIndex)
-		case "-y": // execute command automatically
-			flagsHandlerAutoexecute(Flags, &startPromptIndex)
 		case "-n":
 			flagsHandlerNoexec(Flags, &startPromptIndex)
 		case "-o":
@@ -123,12 +116,6 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
 		}
-	}
-
-	// noexec takes priority over autoexecute, turn off autoexec
-	// guarentees mutual exclusivity
-	if Flags.Noexec && Flags.Autoexecute {
-		Flags.Autoexecute = false
 	}
 
 	// if -o raised but empty filename passed, use default filename
