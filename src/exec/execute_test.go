@@ -1,9 +1,30 @@
 package exec
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 )
+
+// test cmd gen when quotes are involved
+func TestQuotes(t *testing.T) {
+	cmd_str := `echo 'this is a command with "quotes"'`
+	expected_cmd := `echo 'this is a command with "quotes"'`
+	expected_result := `this is a command with "quotes"`
+
+	Cmd := Command(cmd_str)
+
+	generated_cmd := Cmd.Cmd.String()
+	match, err := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match || err != nil {
+		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
+	}
+
+	generated_result, err := Cmd.Exec()
+	if generated_result != expected_result || err != nil {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
+	}
+}
 
 // create a testfile using EXEC, check command with flags
 func TestExecution(t *testing.T) {
