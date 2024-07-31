@@ -5,11 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 const (
 	outfilePerms = 0666
 	confPath     = ".flconfig"
+)
+
+var (
+	home, _     = os.UserHomeDir()
+	confPath, _ = filepath.Abs(home + "/" + ".flconfig")
 )
 
 func Output(outfile string, data string) (err error) {

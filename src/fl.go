@@ -62,12 +62,12 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
-	if Flags.PromptExec && !Config.Autoexec {
+	if Flags.PromptExec {
 		userExecute = exec.PromptExec()
 	}
 
 	// perform the command if autoexecute enabled or user prompted to exec
-	if Config.Autoexec || userExecute {
+	if (Config.Autoexec && !Flags.PromptExec) || userExecute {
 		helpers.Print(Flags.Verbose, "Executing the result...")
 
 		Cmd := exec.Command(result)
