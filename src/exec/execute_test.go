@@ -1,5 +1,10 @@
 package exec
 
+/*
+ * @NOTE: Exec() shell output may generate a \n. check for it.
+ * these tests assume a bash environment
+ */
+
 import (
 	"regexp"
 	"strings"
@@ -10,7 +15,7 @@ import (
 func TestQuotes(t *testing.T) {
 	cmd_str := `echo 'this is a command with "quotes"'`
 	expected_cmd := `echo 'this is a command with "quotes"'`
-	expected_result := `this is a command with "quotes"`
+	expected_result := "this is a command with \"quotes\"\n"
 
 	Cmd := Command(cmd_str)
 
@@ -30,7 +35,7 @@ func TestQuotes(t *testing.T) {
 func TestStdIn(t *testing.T) {
 	cmd_str := "tr A-Z a-z <<< TeSTsTrIng"
 	expected_cmd := "tr A-Z a-z <<< TeSTsTrIng"
-	expected_result := "teststring"
+	expected_result := "teststring\n"
 
 	Cmd := Command(cmd_str)
 
