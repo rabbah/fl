@@ -17,21 +17,21 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, Noexec, Tui, Output bool
-	Outfile, Prompt                    string
-	Len                                int
+	Verbose, Help, PromptExec, Tui, Output bool
+	Outfile, Prompt                        string
+	Len                                    int
 }
 
 func ConstructFlags() (Flags FlagStruct) {
 	return FlagStruct{
-		Verbose: false,
-		Help:    false,
-		Noexec:  false,
-		Tui:     false,
-		Output:  false,
-		Outfile: "",
-		Prompt:  "",
-		Len:     5,
+		Verbose:    false,
+		Help:       false,
+		PromptExec: false,
+		Tui:        false,
+		Output:     false,
+		Outfile:    "",
+		Prompt:     "",
+		Len:        5,
 	}
 }
 
@@ -43,7 +43,7 @@ fl by itself will open the graphical interface. Otherwise, prompt is required.
 Usage: fl [-hnvt] [-o filename] prompt...
 
  -h,--help              show command usage
- -n                     do not prompt for or run generated command (takes priority over -y)
+ -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
  -o                     output generated command to the passed textfile
  -t                     enter the graphical interface (TUI)
@@ -75,9 +75,9 @@ func flagsHandlerVerbose(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.Verbose = true
 }
 
-func flagsHandlerNoexec(Flags *FlagStruct, startPromptIndex *int) {
+func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
-	Flags.Noexec = true
+	Flags.PromptExec = true
 }
 
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
@@ -158,8 +158,8 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			fallthrough
 		case "--verbose":
 			flagsHandlerVerbose(Flags, &startPromptIndex)
-		case "-n":
-			flagsHandlerNoexec(Flags, &startPromptIndex)
+		case "-p":
+			flagsHandlerPrompt(Flags, &startPromptIndex)
 		case "-o":
 			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
 			i++ // skip next arg (it should be filename)
