@@ -94,15 +94,3 @@ func ReadConf() (config Config, err error) {
 
 	return config, nil
 }
-
-func (Config Config) EditConf(option confEntry, value any) (err error) {
-
-	switch option {
-	case autoexec:
-		Config.Autoexec = value.(bool)
-	}
-
-	err = Config.SaveConf()
-
-	return err
-}
