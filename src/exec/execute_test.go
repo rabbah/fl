@@ -6,6 +6,7 @@ package exec
  */
 
 import (
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -51,7 +52,7 @@ func TestStdIn(t *testing.T) {
 	}
 }
 
-// test cmd gen when using <<<
+// test cmd gen with multiple lines
 func TestMultilineCmd(t *testing.T) {
 	cmd_str := "mkdir test\n" +
 		"ls\n" +
@@ -78,12 +79,41 @@ func TestMultilineCmd(t *testing.T) {
 	}
 }
 
+// test that ~ and $HOME expand to the same thing (os.UserHomeDir(). also check not empty.)
+func TestTildeAndEnvVarExpansion(t *testing.T) {
+	cmd_str_tilde := "echo ~"
+	cmd_str_env := "echo $HOME"
+	expected, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf(`error executing os.UserHomeDir()`)
+	}
+	// exec outputs an extra \n
+	expected = expected + "\n"
+
+	Cmd_tilde := Command(cmd_str_tilde)
+	Cmd_env := Command(cmd_str_env)
+	// skip Command() test, unecessary for this test
+
+	// check os.getenv not empty
+	if match, _ := regexp.MatchString("/", expected); !match {
+		t.Fatalf(`os.UserHomeDir() is empty, but it should have a value`)
+	}
+	// check tilde = $HOME = os.Getenv($HOME)
+	exec_tilde, err := Cmd_tilde.Exec()
+	if exec_tilde != expected {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, Cmd_tilde, exec_tilde, err, expected, nil)
+	}
+	exec_env, err := Cmd_env.Exec()
+	if exec_env != expected {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, Cmd_env, exec_env, err, expected, nil)
+	}
+}
+
 /*
  * @TODO:
  * > >> |
  * ;
  * && ||
- * ~ $HOME
  */
 
 // create a testfile using EXEC, check command with flags
