@@ -20,8 +20,8 @@ func TestQuotes(t *testing.T) {
 	Cmd := Command(cmd_str)
 
 	generated_cmd := Cmd.Cmd.String()
-	match, err := regexp.MatchString(expected_cmd, generated_cmd)
-	if !match || err != nil {
+	match, _ := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match {
 		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
 	}
 
@@ -40,8 +40,8 @@ func TestStdIn(t *testing.T) {
 	Cmd := Command(cmd_str)
 
 	generated_cmd := Cmd.Cmd.String()
-	match, err := regexp.MatchString(expected_cmd, generated_cmd)
-	if !match || err != nil {
+	match, _ := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match {
 		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
 	}
 
@@ -51,9 +51,35 @@ func TestStdIn(t *testing.T) {
 	}
 }
 
+// test cmd gen when using <<<
+func TestMultilineCmd(t *testing.T) {
+	cmd_str := "mkdir test\n" +
+		"ls\n" +
+		"rmdir test"
+	expected_cmd := "mkdir test\n" +
+		"ls\n" +
+		"rmdir test"
+	// variable, depends on ls results!
+	// however, should show as output entry of ls - hence \ntest\n
+	expected_result := "\ntest\n"
+
+	Cmd := Command(cmd_str)
+
+	generated_cmd := Cmd.Cmd.String()
+	match, _ := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match {
+		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
+	}
+
+	generated_result, err := Cmd.Exec()
+	match, _ = regexp.MatchString(expected_result, generated_result)
+	if !match || err != nil {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
+	}
+}
+
 /*
  * @TODO:
- * multiline
  * > >> |
  * ;
  * && ||
