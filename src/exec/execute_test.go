@@ -7,6 +7,7 @@ package exec
 
 import (
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"testing"
@@ -50,6 +51,46 @@ func TestStdIn(t *testing.T) {
 	if generated_result != expected_result || err != nil {
 		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
 	}
+}
+
+// test cmd gen when using > and >>
+func TestRedirectAndOutput(t *testing.T) {
+	cmd_str_redirect := "echo test1 > test.txt"
+	cmd_str_append := "echo test2 >> test.txt"
+	test_cmd_contents := "cat test.txt"
+	expected_contents := "test1\ntest2\n"
+
+	Cmd_redirect := Command(cmd_str_redirect)
+	Cmd_append := Command(cmd_str_append)
+
+	// redirect first and check for no error
+	_, err := Cmd_redirect.Exec()
+	if err != nil {
+		t.Fatalf(`Exec("%s") returned err: %v`, cmd_str_redirect, err)
+	}
+
+	// check append for err
+	_, err = Cmd_append.Exec()
+	if err != nil {
+		t.Fatalf(`Exec("%s") returned err: %v`, cmd_str_append, err)
+	}
+
+	// check that the contents were written
+	actual_contents, _ := Command(test_cmd_contents).Exec()
+	if actual_contents != expected_contents {
+		exec.Command("rm", "test.txt").Run()
+		t.Fatalf(
+			"actual != expected\n\n" +
+				"actual:\n" +
+				actual_contents +
+				"\nexpected:\n" +
+				expected_contents +
+				"\n\n",
+		)
+	}
+
+	// clean up
+	exec.Command("rm", "test.txt").Run()
 }
 
 // test cmd gen with multiple lines
@@ -134,7 +175,7 @@ func TestTildeAndEnvVarExpansion(t *testing.T) {
 
 /*
  * @TODO:
- * > >> |
+ * |
  * && ||
  */
 
@@ -166,6 +207,7 @@ func TestExecution(t *testing.T) {
 	Cmd = Command(cmd_cleanup)
 	res, err = Cmd.Exec()
 	if err != nil {
+		exec.Command("rm", filename).Run()
 		t.Fatalf(`Exec("%s") = "%s", %v. Expected no err`, cmd_cleanup, res, err)
 	}
 
@@ -173,9 +215,11 @@ func TestExecution(t *testing.T) {
 	Cmd = Command(cmd_ls)
 	res, err = Cmd.Exec()
 	if err != nil {
+		exec.Command("rm", filename).Run()
 		t.Fatalf(`Exec("%s") = "%s", %v. Expected no err`, cmd_ls, res, err)
 	}
 	if strings.Contains(string(res), filename) {
+		exec.Command("rm", filename).Run()
 		t.Fatalf(`Testfile not properly deleted`)
 	}
 }
