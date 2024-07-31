@@ -3,6 +3,7 @@ package io
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -74,6 +75,15 @@ func ReadConf() (config Config, err error) {
 		err = initializeConf()
 		if err != nil {
 			return config, errors.New("could not initialize " + confPath)
+		} else {
+			// assume this is the user's first execution
+			fmt.Print(`
+    PLEASE READ:
+    As a safety precaution, the default behavior of this program is to disable automatic execution of
+    generated commands and necer execute a command. To change these default behaviors, read'fl -h' to
+    view usage.
+
+`)
 		}
 	}
 
