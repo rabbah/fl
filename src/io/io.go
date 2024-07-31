@@ -40,14 +40,14 @@ func (Config Config) SaveConf() (err error) {
 	return err
 }
 
-func initConf() Config {
+func NewConf() Config {
 	return Config{
 		Autoexec: false,
 	}
 }
 
 func initializeConf() (err error) {
-	Config := initConf()
+	Config := NewConf()
 
 	err = Config.SaveConf()
 
