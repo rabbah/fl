@@ -104,7 +104,7 @@ func TestArgParsePromptExec(t *testing.T) {
 	Flags := ConstructFlags()
 
 	prompt := "This is an example prompt"
-	cli_input := "fl -n" + " " + prompt
+	cli_input := "fl -p" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "n", Flags)
@@ -192,7 +192,7 @@ func TestArgParseAllFlags(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	outfile := "outfile"
-	cli_input := "fl -y -n -v -o " + outfile + " -t" + " " + prompt
+	cli_input := "fl -p -v -o " + outfile + " -t" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.PromptExec || !Flags.Verbose || Flags.Help || !Flags.Output || !Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects all and only the -n, -v, -o, -t flags. Actual: %+v`, cli_input, Flags)
