@@ -79,6 +79,29 @@ func TestMultilineCmd(t *testing.T) {
 	}
 }
 
+// test cmd gen with multiple lines
+func TestSemicolonCmd(t *testing.T) {
+	cmd_str := "mkdir test;ls;rmdir test"
+	expected_cmd := "mkdir test;ls;rmdir test"
+	// variable, depends on ls results!
+	// however, should show as output entry of ls - hence \ntest\n
+	expected_result := "\ntest\n"
+
+	Cmd := Command(cmd_str)
+
+	generated_cmd := Cmd.Cmd.String()
+	match, _ := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match {
+		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
+	}
+
+	generated_result, err := Cmd.Exec()
+	match, _ = regexp.MatchString(expected_result, generated_result)
+	if !match || err != nil {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
+	}
+}
+
 // test that ~ and $HOME expand to the same thing (os.UserHomeDir(). also check not empty.)
 func TestTildeAndEnvVarExpansion(t *testing.T) {
 	cmd_str_tilde := "echo ~"
@@ -112,7 +135,6 @@ func TestTildeAndEnvVarExpansion(t *testing.T) {
 /*
  * @TODO:
  * > >> |
- * ;
  * && ||
  */
 
