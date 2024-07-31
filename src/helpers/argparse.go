@@ -37,7 +37,7 @@ func ConstructFlags() (Flags FlagStruct) {
 
 // useage definition functions to explain command and its args
 var Usage = func() {
-	fmt.Println(`
+	fmt.Print(`
 fl by itself will open the graphical interface. Otherwise, prompt is required.
 
 Usage: fl [-hnvt] [-o filename] prompt...
@@ -48,9 +48,10 @@ Usage: fl [-hnvt] [-o filename] prompt...
  -o                     output generated command to the passed textfile
  -t                     enter the graphical interface (TUI)
 
-Config: fl config <config param>
+Config: fl conf <config param>
 
  --autoexecute=BOOL     enable autoexecution
+
 `)
 }
 
@@ -114,7 +115,7 @@ var (
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
 func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
-	if args[1] == "config" {
+	if args[1] == "conf" {
 		if regex_autoexecute.MatchString(args[2]) {
 			confHandlerAutoexec(Config, args[2])
 		} else {

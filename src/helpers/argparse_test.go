@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fl/io"
 	"strings"
 	"testing"
 )
@@ -43,6 +44,9 @@ func TestArgParseEmpty(t *testing.T) {
 	if err == nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || !Flags.Tui {
+		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "o", Flags)
+	}
 }
 
 /**********************
@@ -57,11 +61,26 @@ func TestArgParseHelp(t *testing.T) {
 	expectedPrompt := "" // skip prompt when -h is found
 	cli_input := "fl -h" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || Flags.Noexec || Flags.Verbose || !Flags.Help || Flags.Output {
+	if Flags.PromptExec || Flags.Verbose || !Flags.Help || Flags.Output || Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "h", Flags)
 	}
 	if Flags.Prompt != expectedPrompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, expectedPrompt)
+	}
+}
+
+// test tui
+func TestArgParseTui(t *testing.T) {
+	Flags := ConstructFlags()
+
+	prompt := "This is an example prompt"
+	cli_input := "fl -t" + " " + prompt
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || !Flags.Tui {
+		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "t", Flags)
+	}
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 }
 
@@ -72,7 +91,7 @@ func TestArgParseVerbose(t *testing.T) {
 	prompt := "This is an example prompt"
 	cli_input := "fl -v" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || Flags.Noexec || !Flags.Verbose || Flags.Help || Flags.Output {
+	if Flags.PromptExec || !Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "v", Flags)
 	}
 	if Flags.Prompt != prompt || err != nil {
@@ -80,29 +99,14 @@ func TestArgParseVerbose(t *testing.T) {
 	}
 }
 
-// test autoexec
-func TestArgParseAutoexec(t *testing.T) {
-	Flags := ConstructFlags()
-
-	prompt := "This is an example prompt"
-	cli_input := "fl -y" + " " + prompt
-	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if !Flags.Autoexecute || Flags.Noexec || Flags.Verbose || Flags.Help || Flags.Output {
-		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "y", Flags)
-	}
-	if Flags.Prompt != prompt || err != nil {
-		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
-	}
-}
-
 // test noexec
-func TestArgParseNoexec(t *testing.T) {
+func TestArgParsePromptExec(t *testing.T) {
 	Flags := ConstructFlags()
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -n" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || !Flags.Noexec || Flags.Verbose || Flags.Help || Flags.Output {
+	if !Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "n", Flags)
 	}
 	if Flags.Prompt != prompt || err != nil {
@@ -118,7 +122,7 @@ func TestArgParseOutput(t *testing.T) {
 	outfile := "outfile"
 	cli_input := "fl -o " + outfile + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || Flags.Noexec || Flags.Verbose || Flags.Help || !Flags.Output {
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || !Flags.Output || Flags.Tui {
 		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "o", Flags)
 	}
 	if Flags.Outfile != outfile {
@@ -129,9 +133,27 @@ func TestArgParseOutput(t *testing.T) {
 	}
 }
 
+/*
+ * config opts
+ */
+// test autoexec
+func TestArgParseAutoexec(t *testing.T) {
+	Config := io.NewConf()
+
+	prompt := "This is an example prompt"
+	cli_input := "fl conf --autoexecute=true" + " " + prompt
+	wasConfCmd, err := ConfParse(strings.Split(cli_input, " "), &Config)
+	if !wasConfCmd || err != nil {
+		t.Fatalf(`ConfParse("%s") = (%v, %v). Expected (true, nil)`, cli_input, wasConfCmd, err)
+	}
+	if !Config.Autoexec {
+		t.Fatalf(`ConfParse("%s") should set only Autoexec: %v`, cli_input, Config)
+	}
+}
+
 /**********************
- * Validate multiple flag interactions
- *********************/
+* Validate multiple flag interactions
+*********************/
 
 // test help activates despite invalid prompt
 func TestArgParseHelpNoPrompt(t *testing.T) {
@@ -169,10 +191,11 @@ func TestArgParseAllFlags(t *testing.T) {
 	Flags := ConstructFlags()
 
 	prompt := "This is an example prompt"
-	cli_input := "fl -y -n -v" + " " + prompt
+	outfile := "outfile"
+	cli_input := "fl -y -n -v -o " + outfile + " -t" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if Flags.Autoexecute || !Flags.Noexec || !Flags.Verbose || Flags.Help || Flags.Output {
-		t.Fatalf(`ArgParse("%s") yields flags %+v. Expected y: false, n: true, v: true`, cli_input, Flags)
+	if !Flags.PromptExec || !Flags.Verbose || Flags.Help || !Flags.Output || !Flags.Tui {
+		t.Fatalf(`ArgParse("%s") expects all and only the -n, -v, -o, -t flags. Actual: %+v`, cli_input, Flags)
 	}
 	if Flags.Prompt != prompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
