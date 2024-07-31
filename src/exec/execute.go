@@ -18,18 +18,7 @@ func PromptExec() (userExec bool) {
 	return false
 }
 
-func Exec(result string) (res string, err error) {
-	// convert to arr of values (exec requires a specific format)
-	fullCmd := strings.Split(result, " ")
-	cmd := fullCmd[0]
-	args := []string{}
-
-	if len(fullCmd) > 1 {
-		args = fullCmd[1:]
-	}
-
-	var out []byte
-	out, err = exec.Command(cmd, args...).Output()
-
-	return string(out), err
+func Command(result string) Exec {
+	out := exec.Command("bash", "-c", result)
+	return Exec{Cmd: out}
 }
