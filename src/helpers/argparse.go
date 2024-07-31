@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"errors"
+	"fl/io"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -35,12 +37,21 @@ func ConstructFlags() (Flags FlagStruct) {
 
 // useage definition functions to explain command and its args
 var Usage = func() {
-	fmt.Println("Usage: fl [-hynv] prompt...")
-	// for formatting - please start with a space and ensure descruption alignment with tabs
-	fmt.Println(" -h,--help\t\tshow command usage")
-	fmt.Println(" -y\t\t\tautoexecute the generated command")
-	fmt.Println(" -n\t\t\tdo not prompt for or run generated command (takes priority over -y)")
-	fmt.Println(" -v,--verbose\t\tdisplay updates of the command progress")
+	fmt.Println(`
+fl by itself will open the graphical interface. Otherwise, prompt is required.
+
+Usage: fl [-hnvt] [-o filename] prompt...
+
+ -h,--help              show command usage
+ -n                     do not prompt for or run generated command (takes priority over -y)
+ -v,--verbose           display updates of the command progress
+ -o                     output generated command to the passed textfile
+ -t                     enter the graphical interface (TUI)
+
+Config: fl config <config param>
+
+ --autoexecute=BOOL     enable autoexecution
+`)
 }
 
 // print passed prompt if verbose check set
@@ -73,6 +84,46 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 	*startPromptIndex += 2
 	Flags.Output = true
 	Flags.Outfile = outfile // pass name of outfile
+}
+
+func confHandlerAutoexec(Config *io.Config, arg string) {
+	// rewrite autoexec with right side of '='
+	value := strings.Split(arg, "=")[1]
+	if strings.ToLower(value) == "true" {
+		Config.Autoexec = true
+	} else {
+		Config.Autoexec = false
+	}
+}
+
+/**********************
+ * Other parse helpers
+ *********************/
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == ""
+}
+
+/**********************
+ * ConfParse
+ *********************/
+
+var (
+	regex_autoexecute = regexp.MustCompile("--autoexecute=")
+)
+
+// check if this is a config command - follow format 'fl config <CONFIGCMD>'
+func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
+	if args[1] == "config" {
+		if regex_autoexecute.MatchString(args[2]) {
+			confHandlerAutoexec(Config, args[2])
+		} else {
+			return true, errors.New("config param not found")
+		}
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 /**********************
