@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"golang.design/x/clipboard"
 )
 
 // viewstate keeps track of the current state
@@ -234,6 +235,11 @@ func (m gptViewModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m gptViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+y":
+			clipboard.Write(clipboard.FmtText, []byte(m.command))
+		}
 	case userPromptMsg:
 		if m.state == waitForPrompt {
 			m, cmd = m.updatePrompt(msg)
