@@ -14,7 +14,7 @@ var (
 	flagsSelected = themeStyle.Render("x")
 
 	gptViewHeight     = 10
-	gptViewWidth      = 60
+	gptViewWidth      = 78
 	gptPlaceholderTxt = "Waiting for prompt..."
 
 	uInputHeight         = 2
@@ -36,17 +36,17 @@ var (
 			Width(flagsWidth).
 			Height(flagsHeight).
 			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.HiddenBorder())
+			BorderStyle(lipgloss.NormalBorder())
 	gptStyle = lipgloss.NewStyle().
 			Width(gptViewWidth).
 			Height(gptViewHeight).
 			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.HiddenBorder())
+			BorderStyle(lipgloss.NormalBorder())
 	uInputStyle = lipgloss.NewStyle().
 			Width(uInputWidth).
 			Height(uInputHeight).
 			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.HiddenBorder())
+			BorderStyle(lipgloss.NormalBorder())
 	// help
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpColor)).
@@ -55,7 +55,7 @@ var (
 	themeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(themeColor))
 	// extra effects
 	focusedModelStyle = lipgloss.NewStyle().
-				BorderStyle(lipgloss.NormalBorder()).
+				BorderStyle(lipgloss.ThickBorder()).
 				BorderForeground(lipgloss.Color(borderColor))
 )
 
