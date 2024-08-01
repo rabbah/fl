@@ -197,10 +197,45 @@ func TestTildeAndEnvVarExpansion(t *testing.T) {
 	}
 }
 
-/*
- * @TODO:
- * && ||
- */
+// test && and || constructs
+func TestAndOrCmd(t *testing.T) {
+	cmd_str_fail := "ls nonExistentDirectory"
+	cmd_str_succ := "echo \"Command executed\""
+	success_output := "Command executed\n"
+	failure_output := "" // err output prints to stderr, not stdout
+
+	// F & T = F
+	str_under_test := cmd_str_fail + " && " + cmd_str_succ
+	Cmd_under_test := Command(str_under_test)
+	res, err := Cmd_under_test.Exec()
+	if err == nil || res != failure_output {
+		t.Fatalf(`Exec("%s") = ("%s", %v). Expected ("%s", %s)`, str_under_test, res, err, failure_output, "error status 1")
+	}
+
+	// T & T = T
+	str_under_test = cmd_str_succ + " && " + cmd_str_succ
+	Cmd_under_test = Command(str_under_test)
+	res, err = Cmd_under_test.Exec()
+	if err != nil || res != (success_output+success_output) { // success executed twice, so cat string
+		t.Fatalf(`Exec("%s") = ("%s", %v). Expected ("%s", %s)`, str_under_test, res, err, success_output+success_output, "nil")
+	}
+
+	// F | T = T
+	str_under_test = cmd_str_fail + " || " + cmd_str_succ
+	Cmd_under_test = Command(str_under_test)
+	res, err = Cmd_under_test.Exec()
+	if err != nil || res != success_output {
+		t.Fatalf(`Exec("%s") = ("%s", %v). Expected ("%s", %s)`, str_under_test, res, err, success_output, "nil")
+	}
+
+	// F | F = F
+	str_under_test = cmd_str_fail + " || " + cmd_str_fail
+	Cmd_under_test = Command(str_under_test)
+	res, err = Cmd_under_test.Exec()
+	if err == nil || res != failure_output {
+		t.Fatalf(`Exec("%s") = ("%s", %v). Expected ("%s", %s)`, str_under_test, res, err, failure_output, "error status 1")
+	}
+}
 
 // create a testfile using EXEC, check command with flags
 func TestExecution(t *testing.T) {
