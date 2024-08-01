@@ -120,6 +120,30 @@ func TestMultilineCmd(t *testing.T) {
 	}
 }
 
+// test cmd gen with "|"
+func TestPipeCmd(t *testing.T) {
+	cmd_str := "echo 'hello world\n" +
+		"bye world' " +
+		"| grep 'hello'"
+	expected_cmd := "echo 'hello world\n" +
+		"bye world' " +
+		"| grep 'hello'"
+	expected_result := "hello world\n"
+
+	Cmd := Command(cmd_str)
+
+	generated_cmd := Cmd.Cmd.String()
+	match, _ := regexp.MatchString(expected_cmd, generated_cmd)
+	if !match {
+		t.Fatalf(`Command("%s") = "%s", expected "%s"`, cmd_str, generated_cmd, expected_cmd)
+	}
+
+	generated_result, err := Cmd.Exec()
+	if generated_result != expected_result || err != nil {
+		t.Fatalf(`Exec("%s") = ("%s","%v"), expected ("%s","%v")`, expected_cmd, generated_result, err, expected_result, nil)
+	}
+}
+
 // test cmd gen with multiple lines
 func TestSemicolonCmd(t *testing.T) {
 	cmd_str := "mkdir test;ls;rmdir test"
@@ -175,7 +199,6 @@ func TestTildeAndEnvVarExpansion(t *testing.T) {
 
 /*
  * @TODO:
- * |
  * && ||
  */
 
