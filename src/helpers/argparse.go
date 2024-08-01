@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"errors"
+	"fl/io"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -16,37 +18,42 @@ import (
 // global flag structure
 // SHOULD BE A SINGLETON
 type FlagStruct struct {
-	Verbose, Help, Autoexecute, Noexec, Tui, Output bool
-	Outfile, Prompt                                 string
-	Len                                             int
+	Verbose, Help, PromptExec, Tui, Output bool
+	Outfile, Prompt                        string
+	Len                                    int
 }
 
 func ConstructFlags() (Flags FlagStruct) {
 	return FlagStruct{
-		Verbose:     false,
-		Help:        false,
-		Autoexecute: false,
-		Noexec:      false,
-		Tui:         false,
-		Output:      false,
-		Outfile:     "",
-		Prompt:      "",
-		Len:         6,
+		Verbose:    false,
+		Help:       false,
+		PromptExec: false,
+		Tui:        false,
+		Output:     false,
+		Outfile:    "",
+		Prompt:     "",
+		Len:        5,
 	}
 }
 
 // useage definition functions to explain command and its args
 var Usage = func() {
-	fmt.Println("\nfl by itself will open the graphical interface. Otherwise, prompt is required.")
-	fmt.Println("\nUsage: fl [-hynvt] [-o filename] prompt...")
-	// for formatting - please start with a space and ensure descruption alignment with tabs
-	fmt.Println(" -h,--help\t\tshow command usage")
-	fmt.Println(" -y\t\t\tautoexecute the generated command")
-	fmt.Println(" -n\t\t\tdo not prompt for or run generated command (takes priority over -y)")
-	fmt.Println(" -v,--verbose\t\tdisplay updates of the command progress")
-	fmt.Println(" -o\t\t\toutput generated command to the passed textfile")
-	fmt.Println(" -t\t\t\tenter the graphical interface (TUI)")
-	fmt.Println()
+	fmt.Print(`
+fl by itself will open the graphical interface. Otherwise, prompt is required.
+
+Usage: fl [-hnvt] [-o filename] prompt...
+
+ -h,--help              show command usage
+ -p                     prompt for running generated command
+ -v,--verbose           display updates of the command progress
+ -o                     output generated command to the passed textfile
+ -t                     enter the graphical interface (TUI)
+
+Config: fl conf <config param>
+
+ --autoexecute=BOOL     enable autoexecution
+
+`)
 }
 
 // print passed prompt if verbose check set
@@ -70,19 +77,9 @@ func flagsHandlerVerbose(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.Verbose = true
 }
 
-func flagsHandlerAutoexecute(Flags *FlagStruct, startPromptIndex *int) {
+func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
-	Flags.Autoexecute = true
-}
-
-func flagsHandlerNoexec(Flags *FlagStruct, startPromptIndex *int) {
-	*startPromptIndex++
-	Flags.Noexec = true
-}
-
-func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
-	*startPromptIndex++
-	Flags.Tui = true
+	Flags.PromptExec = true
 }
 
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
@@ -91,12 +88,44 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 	Flags.Outfile = outfile // pass name of outfile
 }
 
+func confHandlerAutoexec(Config *io.Config, arg string) {
+	// rewrite autoexec with right side of '='
+	value := strings.Split(arg, "=")[1]
+	if strings.ToLower(value) == "true" {
+		Config.Autoexec = true
+	} else {
+		Config.Autoexec = false
+	}
+}
+
 /**********************
  * Other parse helpers
  *********************/
 
 func IsEmpty(str string) bool {
 	return strings.TrimSpace(str) == ""
+}
+
+/**********************
+ * ConfParse
+ *********************/
+
+var (
+	regex_autoexecute = regexp.MustCompile("--autoexecute=")
+)
+
+// check if this is a config command - follow format 'fl config <CONFIGCMD>'
+func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
+	if args[1] == "conf" {
+		if regex_autoexecute.MatchString(args[2]) {
+			confHandlerAutoexec(Config, args[2])
+		} else {
+			return true, errors.New("config param not found")
+		}
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 /**********************
@@ -125,10 +154,8 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			fallthrough
 		case "--verbose":
 			flagsHandlerVerbose(Flags, &startPromptIndex)
-		case "-y": // execute command automatically
-			flagsHandlerAutoexecute(Flags, &startPromptIndex)
-		case "-n":
-			flagsHandlerNoexec(Flags, &startPromptIndex)
+		case "-p":
+			flagsHandlerPrompt(Flags, &startPromptIndex)
 		case "-t":
 			flagsHandlerTui(Flags, &startPromptIndex)
 		case "-o":
@@ -138,12 +165,6 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
 		}
-	}
-
-	// noexec takes priority over autoexecute, turn off autoexec
-	// guarentees mutual exclusivity
-	if Flags.Noexec && Flags.Autoexecute {
-		Flags.Autoexecute = false
 	}
 
 	// if -o raised but empty filename passed, use default filename

@@ -4,7 +4,6 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
-	"fl/ui"
 	"fl/web"
 	"fmt"
 	"os"
@@ -30,7 +29,7 @@ func init() {
  * fl in-line execution
  *********************/
 
-func noTui(Flags helpers.FlagStruct) {
+func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
@@ -60,12 +59,12 @@ func noTui(Flags helpers.FlagStruct) {
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
-	if !Flags.Noexec && !Flags.Autoexecute {
+	if Flags.PromptExec {
 		userExecute = exec.PromptExec()
 	}
 
 	// perform the command if autoexecute enabled or user prompted to exec
-	if Flags.Autoexecute || userExecute {
+	if (Config.Autoexec && !Flags.PromptExec) || userExecute {
 		helpers.Print(Flags.Verbose, "Executing the result...")
 
 		out, err := exec.Exec(result)
@@ -97,8 +96,33 @@ func main() {
 	// initialize flags struct
 	Flags := helpers.ConstructFlags()
 
+	// get config data
+	Config, err := io.ReadConf()
+	if err != nil {
+		fmt.Printf("Config read error: %s\n", err)
+		helpers.Usage()
+		os.Exit(1)
+	}
+
+	// check if the entered command was a conf parse command
+	wasConfCmd, err := helpers.ConfParse(os.Args, &Config)
+	if err != nil {
+		fmt.Println(err)
+		helpers.Usage()
+		os.Exit(1)
+	}
+	if wasConfCmd {
+		// save conf and exit
+		err = Config.SaveConf()
+		if err != nil {
+			fmt.Printf("Config write error: %s\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
 	// parse arguments and recieve prompt
-	err := helpers.ArgParse(os.Args, &Flags)
+	err = helpers.ArgParse(os.Args, &Flags)
 
 	if err != nil {
 		fmt.Printf("Parse error: %s\n", err)
@@ -115,13 +139,15 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		err = ui.RunProgram(&Flags)
-		if err != nil {
-			fmt.Printf("Error running TUI: %v", err)
-			os.Exit(1)
-		}
+		/* @DISABLED while changing argparse and adding config options
+		 * err = ui.RunProgram(&Flags)
+		 * if err != nil {
+		 * 	fmt.Printf("Error running TUI: %v", err)
+		 * 	os.Exit(1)
+		 * }
+		 */
 	} else {
 		// execute in-line if TUI flag not set
-		noTui(Flags)
+		noTui(Flags, Config)
 	}
 }
