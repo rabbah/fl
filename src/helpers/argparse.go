@@ -18,7 +18,7 @@ import (
 // global flag structure
 type FlagStruct struct {
 	Verbose, Help, PromptExec, Tui, Output bool
-	Outfile, Prompt                        string
+	Outfile, Prompt, Language              string
 	Len                                    int
 }
 
@@ -31,7 +31,8 @@ func ConstructFlags() (Flags FlagStruct) {
 		Output:     false,
 		Outfile:    "",
 		Prompt:     "",
-		Len:        5,
+		Language:   "Bash/Unix",
+		Len:        6,
 	}
 }
 
@@ -40,13 +41,14 @@ var Usage = func() {
 	fmt.Print(`
 fl by itself will open the graphical interface. Otherwise, prompt is required.
 
-Usage: fl [-hnvt] [-o filename] prompt...
+Usage: fl [-hnvt] [-o filename] [-l language] prompt...
 
  -h,--help              show command usage
  -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
- -o                     output generated command to the passed textfile
  -t                     enter the graphical interface (TUI)
+ -o                     output generated command to the passed textfile
+ -l                     target language to generate code for, default is bash/unix commands
 
 Config: fl conf <config param>
 
@@ -85,6 +87,11 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 	*startPromptIndex += 2
 	Flags.Output = true
 	Flags.Outfile = outfile // pass name of outfile
+}
+
+func flagsHandlerLanguage(Flags *FlagStruct, startPromptIndex *int, language string) {
+	*startPromptIndex += 2
+	Flags.Language = language
 }
 
 func confHandlerAutoexec(Config *io.Config, arg string) {
@@ -164,6 +171,9 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 		case "-o":
 			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
 			i++ // skip next arg (it should be filename)
+		case "-l":
+			flagsHandlerLanguage(Flags, &startPromptIndex, args[i+1])
+			i++
 		default:
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false
