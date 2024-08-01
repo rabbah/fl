@@ -25,6 +25,7 @@ type gptViewModel struct {
 	viewport viewport.Model
 	state    gptViewState
 	Flags    *helpers.FlagStruct
+	Config   *io.Config
 	content  string
 	prompt   string
 	command  string
@@ -48,7 +49,7 @@ type cmdOutputErr struct {
 	err error
 }
 
-func newGPTViewModel(Flags *helpers.FlagStruct) gptViewModel {
+func newGPTViewModel(Flags *helpers.FlagStruct, Config *io.Config) gptViewModel {
 	m := gptViewModel{}
 	m.viewport = viewport.New(gptViewWidth, gptViewHeight)
 	// Flags is a shared global - do NOT rely on for setting the on-screen prompt or m.prompt
@@ -58,13 +59,13 @@ func newGPTViewModel(Flags *helpers.FlagStruct) gptViewModel {
 		m.content = "Prompt: " + prompt
 		// wait for command to be generated (signal is sent with Init)
 		m.state = waitForCommand
-
 	} else {
 		m.content = gptPlaceholderTxt
 		// wait for user executing prompt
 		m.state = waitForPrompt
 	}
 	m.Flags = Flags
+	m.Config = Config
 	m.prompt = prompt
 	m.viewport.SetContent(m.content)
 	m.command = ""
@@ -115,6 +116,8 @@ func (m gptViewModel) updatePrompt(msg userPromptMsg) (gptViewModel, tea.Cmd) {
 }
 
 func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	if msg.err != nil {
 		// err. restart state machine
 		m.content = "Something went wrong when generating command! " + gptPlaceholderTxt
@@ -127,24 +130,32 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 		m.command = msg.res
 	}
 
-	if m.Flags.Autoexecute {
-		// skip asking for user input (and execute command + change focus)
-		m.state = waitForCommandExec
-		return m, tea.Batch(execCmd(m.command), changeModelFocus(uInputView))
-	} else if m.Flags.Noexec {
-		// skip asking for user input (dont execute command but change focus)
-		m.content = m.command
-		m.viewport.SetContent(m.content)
-		m.state = waitForPrompt
-		return m, changeModelFocus(uInputView)
-	} else {
+	if m.Flags.PromptExec {
 		// change to prompt user state
 		m.content = m.content + "\n\nDo you wish to execute the below? (y/n)"
 		m.content = m.content + "\n\n" + m.command
 		m.viewport.SetContent(m.content)
 		m.state = waitForUserCommandExec
-		return m, nil
+	} else if m.Config.Autoexec {
+		// skip asking for user input (and execute command + change focus)
+		m.state = waitForCommandExec
+
+		cmds = append(cmds, tea.Batch(execCmd(m.command)))
+		cmds = append(cmds, changeModelFocus(uInputView))
+	} else {
+		// skip asking for user input (dont execute command but change focus)
+		m.content = m.command
+		m.viewport.SetContent(m.content)
+		m.state = waitForPrompt
+
+		cmds = append(cmds, changeModelFocus(uInputView))
 	}
+
+	if m.Flags.Output {
+		cmds = append(cmds, saveOutput(m.Flags.Outfile, m.command))
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
@@ -174,7 +185,6 @@ func (m gptViewModel) updateExecPrompt(msg tea.KeyMsg) (gptViewModel, tea.Cmd) {
 }
 
 func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
-	var cmd tea.Cmd
 
 	if msg.err != nil {
 		// err. restart state machine
@@ -193,11 +203,7 @@ func (m gptViewModel) updateExec(msg cmdExecMsg) (gptViewModel, tea.Cmd) {
 	m.viewport.SetContent(m.content)
 	m.state = waitForPrompt
 
-	if m.Flags.Output {
-		cmd = saveOutput(m.Flags.Outfile, m.command)
-	}
-
-	return m, cmd
+	return m, nil
 }
 
 func (m gptViewModel) updateOutputExecErr(msg cmdOutputErr) (gptViewModel, tea.Cmd) {

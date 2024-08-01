@@ -4,6 +4,7 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
+	"fl/ui"
 	"fl/web"
 	"fmt"
 	"os"
@@ -139,13 +140,11 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		/* @DISABLED while changing argparse and adding config options
-		 * err = ui.RunProgram(&Flags)
-		 * if err != nil {
-		 * 	fmt.Printf("Error running TUI: %v", err)
-		 * 	os.Exit(1)
-		 * }
-		 */
+		err = ui.RunProgram(&Flags, &Config)
+		if err != nil {
+			fmt.Printf("Error running TUI: %v", err)
+			os.Exit(1)
+		}
 	} else {
 		// execute in-line if TUI flag not set
 		noTui(Flags, Config)

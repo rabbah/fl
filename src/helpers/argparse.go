@@ -82,6 +82,11 @@ func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.PromptExec = true
 }
 
+func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
+	*startPromptIndex++
+	Flags.Tui = true
+}
+
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
 	*startPromptIndex += 2
 	Flags.Output = true
@@ -116,7 +121,7 @@ var (
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
 func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
-	if args[1] == "conf" {
+	if len(args) > 1 && args[1] == "conf" {
 		if regex_autoexecute.MatchString(args[2]) {
 			confHandlerAutoexec(Config, args[2])
 		} else {

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fl/helpers"
+	"fl/io"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -16,7 +17,7 @@ import (
 // 4. toggleFlag
 const (
 	autoexecute = iota
-	noexec
+	prompt
 	output
 )
 
@@ -25,16 +26,16 @@ const default_outfile_name = "fl.out"
 const default_placeholder = "enter filename"
 
 var (
-	flags_allowed = []string{"autoexecute", "noexec", "output"}
+	flags_allowed = []string{"autoexecute", "prompt", "output"}
 )
 
 // return string for future opts
 func (m flagsModel) flagsSelected(cursor int) (opts string, ok bool) {
 	switch cursor {
 	case autoexecute:
-		return "", m.Flags.Autoexecute
-	case noexec:
-		return "", m.Flags.Noexec
+		return "", m.Config.Autoexec
+	case prompt:
+		return "", m.Flags.PromptExec
 	case output:
 		return "", m.Flags.Output
 	default:
@@ -45,9 +46,9 @@ func (m flagsModel) flagsSelected(cursor int) (opts string, ok bool) {
 func (m flagsModel) setFlag(cursor int, setValue bool) {
 	switch cursor {
 	case autoexecute:
-		m.Flags.Autoexecute = setValue
-	case noexec:
-		m.Flags.Noexec = setValue
+		m.Config.Autoexec = setValue
+	case prompt:
+		m.Flags.PromptExec = setValue
 	case output:
 		m.Flags.Output = setValue
 	default:
@@ -58,11 +59,11 @@ func (m flagsModel) setFlag(cursor int, setValue bool) {
 func (m flagsModel) toggleFlag(cursor int) (newValue bool) {
 	switch cursor {
 	case autoexecute:
-		m.Flags.Autoexecute = !m.Flags.Autoexecute
-		return m.Flags.Autoexecute
-	case noexec:
-		m.Flags.Noexec = !m.Flags.Noexec
-		return m.Flags.Noexec
+		m.Config.Autoexec = !m.Config.Autoexec
+		return m.Config.Autoexec
+	case prompt:
+		m.Flags.PromptExec = !m.Flags.PromptExec
+		return m.Flags.PromptExec
 	case output:
 		m.Flags.Output = !m.Flags.Output
 		return m.Flags.Output
@@ -71,26 +72,11 @@ func (m flagsModel) toggleFlag(cursor int) (newValue bool) {
 	}
 }
 
-func (m flagsModel) validateFlags(cursor int) {
-	// check the mutual exclusive flags, flip the one not recently toggled
-	if m.Flags.Autoexecute && m.Flags.Noexec {
-		if cursor == autoexecute {
-			m.toggleFlag(noexec)
-		} else {
-			m.toggleFlag(autoexecute)
-		}
-	}
-
-	// provide default outfile name if not already given
-	if m.Flags.Output && m.Flags.Outfile == "" {
-		m.Flags.Outfile = default_outfile_name
-	}
-}
-
 type flagsModel struct {
 	flags_allowed []string
 	flags_cursor  int
 	Flags         *helpers.FlagStruct
+	Config        *io.Config
 	outfileEntry  textinput.Model
 }
 
@@ -105,9 +91,10 @@ func newOutputFilenameModel(outfile string) textinput.Model {
 	return m
 }
 
-func newFlagsModel(Flags *helpers.FlagStruct) flagsModel {
+func newFlagsModel(Flags *helpers.FlagStruct, Config *io.Config) flagsModel {
 	m := flagsModel{}
 	m.Flags = Flags
+	m.Config = Config
 	m.flags_allowed = flags_allowed
 	// if initialized with output enabled, we know outfile name was parsed with helpers.argparse
 	m.outfileEntry = newOutputFilenameModel(m.Flags.Outfile)
@@ -155,7 +142,6 @@ func (m flagsModel) UpdateFocused(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			// if output flag, swap between placeholder and value when toggling
 			m.toggleFlag(m.flags_cursor)
-			m.validateFlags(m.flags_cursor)
 		}
 	}
 

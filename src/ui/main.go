@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fl/helpers"
+	"fl/io"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -45,7 +46,7 @@ func changeModelFocus(newState sessionState) tea.Cmd {
 	}
 }
 
-func newModel(Flags *helpers.FlagStruct) mainModel {
+func newModel(Flags *helpers.FlagStruct, Config *io.Config) mainModel {
 	m := mainModel{state: flagsView}
 	m.models = make(map[sessionState]tea.Model)
 	/* @IMPORTANT
@@ -53,8 +54,8 @@ func newModel(Flags *helpers.FlagStruct) mainModel {
 	 * this ensures the map is sorted SEQUENTIALLY
 	 */
 	m.models[uInputView] = newUserInputModel()
-	m.models[gptView] = newGPTViewModel(Flags)
-	m.models[flagsView] = newFlagsModel(Flags)
+	m.models[gptView] = newGPTViewModel(Flags, Config)
+	m.models[flagsView] = newFlagsModel(Flags, Config)
 
 	// if prompt supplied through cli, focus on gpt output
 	if Flags.Prompt != "" {
@@ -179,8 +180,8 @@ func (m mainModel) View() string {
 	return s
 }
 
-func RunProgram(Flags *helpers.FlagStruct) (err error) {
-	initialModel := newModel(Flags)
+func RunProgram(Flags *helpers.FlagStruct, Config *io.Config) (err error) {
+	initialModel := newModel(Flags, Config)
 	p := tea.NewProgram(initialModel)
 	_, err = p.Run()
 	return err
