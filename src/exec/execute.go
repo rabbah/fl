@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// wrap os.exec struct for decoupling
+type Exec struct {
+	Cmd *exec.Cmd
+}
+
 func PromptExec() (userExec bool) {
 	var userInput string
 	fmt.Print("Would you like to execute the command? (y/n): ")
@@ -18,18 +23,13 @@ func PromptExec() (userExec bool) {
 	return false
 }
 
-func Exec(result string) (res string, err error) {
-	// convert to arr of values (exec requires a specific format)
-	fullCmd := strings.Split(result, " ")
-	cmd := fullCmd[0]
-	args := []string{}
+func Command(result string) Exec {
+	out := exec.Command("bash", "-c", result)
+	return Exec{Cmd: out}
+}
 
-	if len(fullCmd) > 1 {
-		args = fullCmd[1:]
-	}
-
-	var out []byte
-	out, err = exec.Command(cmd, args...).Output()
-
-	return string(out), err
+func (ex Exec) Exec() (res string, err error) {
+	var tmp []byte
+	tmp, err = ex.Cmd.Output()
+	return string(tmp), err
 }
