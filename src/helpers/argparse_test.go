@@ -121,6 +121,21 @@ func TestArgParsePromptExec(t *testing.T) {
 	}
 }
 
+func TestArgParseExplain(t *testing.T) {
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
+
+	prompt := "This is an example prompt"
+	cli_input := "fl -e" + " " + prompt
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui || !Flags.Explain {
+		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "n", Flags)
+	}
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
+	}
+}
+
 // test output
 func TestArgParseOutput(t *testing.T) {
 	Config := io.NewConf()
