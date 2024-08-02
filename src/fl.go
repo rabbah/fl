@@ -38,7 +38,7 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, Flags.Prompt)
+	res, err := web.PromptAI(apiUrl, Flags.Prompt, Flags.Language)
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
 		os.Exit(1)

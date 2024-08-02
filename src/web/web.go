@@ -8,8 +8,13 @@ import (
 	"strings"
 )
 
-func PromptAI(apiUrl string, prompt string) (res *http.Response, err error) {
-	res, err = http.Post(apiUrl, "application/json", strings.NewReader(fmt.Sprintf(`{"prompt": "%s"}`, prompt)))
+func PromptAI(apiUrl string, prompt string, language string) (res *http.Response, err error) {
+	req := fmt.Sprintf(
+		`{"prompt": "%s","language": "%s"}`,
+		prompt,
+		language,
+	)
+	res, err = http.Post(apiUrl, "application/json", strings.NewReader(req))
 	return res, err
 }
 
