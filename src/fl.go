@@ -58,7 +58,21 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	fmt.Println(result)
 	fmt.Println()
 
+	// copy to clipboard
 	clipboard.Write(clipboard.FmtText, []byte(result))
+
+	// check if explain flag, then look
+	if Flags.Explain {
+		helpers.Print(Flags.Verbose, "Sending command for explanation...")
+
+		explanation, err := web.ExplainCommand(result, Flags.Language)
+		if err != nil {
+			fmt.Printf("Failed to call Flows API: %s\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(explanation)
+	}
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
