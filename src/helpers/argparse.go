@@ -17,9 +17,9 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, PromptExec, Tui, Output bool
-	Outfile, Prompt, Language              string
-	Len                                    int
+	Verbose, Help, PromptExec, Tui, Output, Explain bool
+	Outfile, Prompt, Language                       string
+	Len                                             int
 }
 
 func ConstructFlags(Config io.Config) (Flags FlagStruct) {
@@ -29,10 +29,11 @@ func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 		PromptExec: false,
 		Tui:        false,
 		Output:     false,
+		Explain:    false,
 		Outfile:    "",
 		Prompt:     "",
 		Language:   Config.Language,
-		Len:        6,
+		Len:        7,
 	}
 }
 
@@ -47,8 +48,9 @@ Usage: fl [-hnvt] [-o filename] [-l language] prompt...
  -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
  -t                     enter the graphical interface (TUI)
- -o                     output generated command to the passed textfile
  -l                     target language to generate code for, default is bash/unix commands
+ -e                     for extra verification, ask AI what the generated command does
+ -o                     output generated command to the passed textfile
 
 Config: fl conf <config param>
 
@@ -82,6 +84,11 @@ func flagsHandlerVerbose(Flags *FlagStruct, startPromptIndex *int) {
 func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
 	Flags.PromptExec = true
+}
+
+func flagsHandlerExplain(Flags *FlagStruct, startPromptIndex *int) {
+	*startPromptIndex++
+	Flags.Explain = true
 }
 
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
@@ -178,6 +185,8 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			flagsHandlerVerbose(Flags, &startPromptIndex)
 		case "-p":
 			flagsHandlerPrompt(Flags, &startPromptIndex)
+		case "-e":
+			flagsHandlerExplain(Flags, &startPromptIndex)
 		case "-o":
 			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
 			i++ // skip next arg (it should be filename)
