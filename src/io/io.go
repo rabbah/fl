@@ -35,6 +35,7 @@ const (
 
 type Config struct {
 	Autoexec bool
+	Language string
 }
 
 func (Config Config) SaveConf() (err error) {
@@ -48,6 +49,7 @@ func (Config Config) SaveConf() (err error) {
 func NewConf() Config {
 	return Config{
 		Autoexec: false,
+		Language: "Unix/Bash",
 	}
 }
 

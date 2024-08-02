@@ -22,7 +22,7 @@ type FlagStruct struct {
 	Len                                    int
 }
 
-func ConstructFlags() (Flags FlagStruct) {
+func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 	return FlagStruct{
 		Verbose:    false,
 		Help:       false,
@@ -31,7 +31,7 @@ func ConstructFlags() (Flags FlagStruct) {
 		Output:     false,
 		Outfile:    "",
 		Prompt:     "",
-		Language:   "Bash/Unix",
+		Language:   Config.Language,
 		Len:        6,
 	}
 }
@@ -53,6 +53,7 @@ Usage: fl [-hnvt] [-o filename] [-l language] prompt...
 Config: fl conf <config param>
 
  --autoexecute=BOOL     enable autoexecution
+ --language=STRING      change the DEFAULT language/environment to generate a command for
 
 `)
 }
@@ -104,6 +105,12 @@ func confHandlerAutoexec(Config *io.Config, arg string) {
 	}
 }
 
+func confHandlerLanguage(Config *io.Config, arg string) {
+	// rewrite autoexec with right side of '='
+	value := strings.Split(arg, "=")[1]
+	Config.Language = strings.ToLower(value)
+}
+
 /**********************
  * Other parse helpers
  *********************/
@@ -118,6 +125,7 @@ func IsEmpty(str string) bool {
 
 var (
 	regex_autoexecute = regexp.MustCompile("--autoexecute=")
+	regex_language    = regexp.MustCompile("--language=")
 )
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
@@ -125,6 +133,8 @@ func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
 	if args[1] == "conf" {
 		if regex_autoexecute.MatchString(args[2]) {
 			confHandlerAutoexec(Config, args[2])
+		} else if regex_language.MatchString(args[2]) {
+			confHandlerLanguage(Config, args[2])
 		} else {
 			return true, errors.New("config param not found")
 		}

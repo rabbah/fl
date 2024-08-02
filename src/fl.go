@@ -97,9 +97,6 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 func main() {
 
-	// initialize flags struct
-	Flags := helpers.ConstructFlags()
-
 	// get config data
 	Config, err := io.ReadConf()
 	if err != nil {
@@ -125,6 +122,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	// initialize flags struct
+	Flags := helpers.ConstructFlags(Config)
 	// parse arguments and recieve prompt
 	err = helpers.ArgParse(os.Args, &Flags)
 
