@@ -48,9 +48,10 @@ Usage: fl [-hnvt] [-o filename] [-l language] prompt...
  -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
  -t                     enter the graphical interface (TUI)
- -l                     target language to generate code for, default is bash/unix commands
  -e                     for extra verification, ask AI what the generated command does
- -o                     output generated command to the passed textfile
+ -o outfile             output generated command to the passed textfile
+ -l language            target language to generate code for, default is bash/unix commands
+                        ┃ target language can also be a desired command name!
 
 Config: fl conf <config param>
 
