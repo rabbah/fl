@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
 const (
@@ -43,12 +41,13 @@ func ExplainCommand(command string, language string) (result string, err error) 
 }
 
 func PromptAI(apiUrl string, prompt string, language string) (res *http.Response, err error) {
-	req := fmt.Sprintf(
-		`{"prompt": "%s","language": "%s"}`,
-		prompt,
-		language,
-	)
-	res, err = http.Post(apiUrl, "application/json", strings.NewReader(req))
+	// convert to JSON for proper escaping of strings which may be in the command
+	req := map[string]string{
+		"prompt":   prompt,
+		"language": language,
+	}
+	reqJSON, _ := json.Marshal(req)
+	res, err = http.Post(apiUrl, "application/json", bytes.NewBuffer(reqJSON))
 	return res, err
 }
 
