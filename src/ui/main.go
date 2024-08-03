@@ -147,15 +147,15 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m mainModel) appView() string {
 	var s string
 
-	help := ""
 	switch m.state {
 	case uInputView:
 		help := "\nenter: submit prompt"
 		s += viewBuilder(m, setFocus(uInputStyle), gptStyle, flagsStyle, explainStyle, help)
 	case gptView:
+		help := "\nup: scroll up • down: scroll down • y: confirm • n: deny"
 		s += viewBuilder(m, uInputStyle, setFocus(gptStyle), flagsStyle, explainStyle, help)
 	case flagsView:
-		help := "\nenter: toggle flag • up: scroll up • down: scroll down"
+		help := "\nup: scroll up • down: scroll down • enter: toggle flag"
 		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), explainStyle, help)
 	case explainView:
 		help := "\nup: scroll up • down: scroll down"

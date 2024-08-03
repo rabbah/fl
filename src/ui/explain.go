@@ -20,6 +20,7 @@ type webExplainMsg struct {
 func newExplainViewModel() explainViewModel {
 	m := explainViewModel{}
 	m.viewport = viewport.New(explainViewWidth, explainViewHeight)
+	m.viewport.SetContent("This box will explain commands as they are generated as long as the explain option is set.")
 	return m
 }
 

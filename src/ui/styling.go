@@ -98,6 +98,7 @@ func viewBuilder(m mainModel,
 
 	// help
 	render = lipgloss.JoinVertical(lipgloss.Top, render, helpStyle.Render(help))
+	render += "\n"
 	render = lipgloss.JoinVertical(lipgloss.Top, render, helpStyle.Render(mainHelp))
 
 	return render
