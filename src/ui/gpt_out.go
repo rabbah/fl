@@ -90,7 +90,7 @@ func sendPrompt(prompt string) tea.Cmd {
 
 func execCmd(prompt string) tea.Cmd {
 	return func() tea.Msg {
-		res, err := exec.Exec(prompt)
+		res, err := exec.Command(prompt).Exec()
 		return cmdExecMsg{res, err}
 	}
 }

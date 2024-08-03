@@ -18,21 +18,23 @@ import (
 // global flag structure
 // SHOULD BE A SINGLETON
 type FlagStruct struct {
-	Verbose, Help, PromptExec, Tui, Output bool
-	Outfile, Prompt                        string
-	Len                                    int
+	Verbose, Help, PromptExec, Tui, Output, Explain bool
+	Outfile, Prompt, Language                       string
+	Len                                             int
 }
 
-func ConstructFlags() (Flags FlagStruct) {
+func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 	return FlagStruct{
 		Verbose:    false,
 		Help:       false,
 		PromptExec: false,
 		Tui:        false,
 		Output:     false,
+		Explain:    false,
 		Outfile:    "",
 		Prompt:     "",
-		Len:        5,
+		Language:   Config.Language,
+		Len:        7,
 	}
 }
 
@@ -41,17 +43,21 @@ var Usage = func() {
 	fmt.Print(`
 fl by itself will open the graphical interface. Otherwise, prompt is required.
 
-Usage: fl [-hnvt] [-o filename] prompt...
+Usage: fl [-hnvt] [-o filename] [-l language] prompt...
 
  -h,--help              show command usage
  -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
- -o                     output generated command to the passed textfile
  -t                     enter the graphical interface (TUI)
+ -e                     for extra verification, ask AI what the generated command does
+ -o outfile             output generated command to the passed textfile
+ -l language            target language to generate code for, default is bash/unix commands
+                        ┃ target language can also be a desired command name!
 
 Config: fl conf <config param>
 
  --autoexecute=BOOL     enable autoexecution
+ --language=STRING      change the DEFAULT language/environment to generate a command for
 
 `)
 }
@@ -87,10 +93,20 @@ func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.Tui = true
 }
 
+func flagsHandlerExplain(Flags *FlagStruct, startPromptIndex *int) {
+	*startPromptIndex++
+	Flags.Explain = true
+}
+
 func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string) {
 	*startPromptIndex += 2
 	Flags.Output = true
 	Flags.Outfile = outfile // pass name of outfile
+}
+
+func flagsHandlerLanguage(Flags *FlagStruct, startPromptIndex *int, language string) {
+	*startPromptIndex += 2
+	Flags.Language = language
 }
 
 func confHandlerAutoexec(Config *io.Config, arg string) {
@@ -101,6 +117,12 @@ func confHandlerAutoexec(Config *io.Config, arg string) {
 	} else {
 		Config.Autoexec = false
 	}
+}
+
+func confHandlerLanguage(Config *io.Config, arg string) {
+	// rewrite autoexec with right side of '='
+	value := strings.Split(arg, "=")[1]
+	Config.Language = strings.ToLower(value)
 }
 
 /**********************
@@ -117,6 +139,7 @@ func IsEmpty(str string) bool {
 
 var (
 	regex_autoexecute = regexp.MustCompile("--autoexecute=")
+	regex_language    = regexp.MustCompile("--language=")
 )
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
@@ -124,6 +147,8 @@ func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
 	if len(args) > 1 && args[1] == "conf" {
 		if regex_autoexecute.MatchString(args[2]) {
 			confHandlerAutoexec(Config, args[2])
+		} else if regex_language.MatchString(args[2]) {
+			confHandlerLanguage(Config, args[2])
 		} else {
 			return true, errors.New("config param not found")
 		}
@@ -163,9 +188,14 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			flagsHandlerPrompt(Flags, &startPromptIndex)
 		case "-t":
 			flagsHandlerTui(Flags, &startPromptIndex)
+		case "-e":
+			flagsHandlerExplain(Flags, &startPromptIndex)
 		case "-o":
 			flagsHandlerOutput(Flags, &startPromptIndex, args[i+1])
 			i++ // skip next arg (it should be filename)
+		case "-l":
+			flagsHandlerLanguage(Flags, &startPromptIndex, args[i+1])
+			i++
 		default:
 			// skip searching for switches if invalid arg is found (assume it is prompt)
 			validArg = false

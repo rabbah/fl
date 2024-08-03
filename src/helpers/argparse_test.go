@@ -12,7 +12,8 @@ import (
 
 // test ArgParse extracts prompt with no flags
 func TestArgParseNoFlags(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	cli_input := "fl" + " " + prompt
@@ -24,7 +25,8 @@ func TestArgParseNoFlags(t *testing.T) {
 
 // one flag with no prompt
 func TestArgParseOneFlagNoPrompt(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := ""
 	cli_input := "fl -v" + " " + prompt
@@ -36,7 +38,8 @@ func TestArgParseOneFlagNoPrompt(t *testing.T) {
 
 // test ArgParse sets TUI if no args passed
 func TestArgParseEmpty(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := ""
 	cli_input := "fl" + " " + prompt
@@ -55,7 +58,8 @@ func TestArgParseEmpty(t *testing.T) {
 
 // test help
 func TestArgParseHelp(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	expectedPrompt := "" // skip prompt when -h is found
@@ -71,7 +75,8 @@ func TestArgParseHelp(t *testing.T) {
 
 // test tui
 func TestArgParseTui(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -t" + " " + prompt
@@ -86,7 +91,8 @@ func TestArgParseTui(t *testing.T) {
 
 // test verbose
 func TestArgParseVerbose(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -v" + " " + prompt
@@ -101,7 +107,8 @@ func TestArgParseVerbose(t *testing.T) {
 
 // test noexec
 func TestArgParsePromptExec(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	cli_input := "fl -p" + " " + prompt
@@ -114,9 +121,25 @@ func TestArgParsePromptExec(t *testing.T) {
 	}
 }
 
+func TestArgParseExplain(t *testing.T) {
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
+
+	prompt := "This is an example prompt"
+	cli_input := "fl -e" + " " + prompt
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui || !Flags.Explain {
+		t.Fatalf(`ArgParse("%s") expects only the %s flag. Actual: %+v`, cli_input, "n", Flags)
+	}
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
+	}
+}
+
 // test output
 func TestArgParseOutput(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	outfile := "outfile"
@@ -133,11 +156,30 @@ func TestArgParseOutput(t *testing.T) {
 	}
 }
 
+func TestArgParseLanguage(t *testing.T) {
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
+
+	prompt := "This is an example prompt"
+	language := "powershell"
+	cli_input := "fl -l " + language + " " + prompt
+	err := ArgParse(strings.Split(cli_input, " "), &Flags)
+	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || Flags.Tui {
+		t.Fatalf(`ArgParse("%s") should not set these flags. Actual: %+v`, cli_input, Flags)
+	}
+	if Flags.Language != language {
+		t.Fatalf(`ArgParse("%s") yields language = '%s'. Expected '%s'`, cli_input, Flags.Language, language)
+	}
+	if Flags.Prompt != prompt || err != nil {
+		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
+	}
+}
+
 /*
  * config opts
  */
 // test autoexec
-func TestArgParseAutoexec(t *testing.T) {
+func TestConfParseAutoexec(t *testing.T) {
 	Config := io.NewConf()
 
 	prompt := "This is an example prompt"
@@ -151,13 +193,29 @@ func TestArgParseAutoexec(t *testing.T) {
 	}
 }
 
+func TestConfParseLanguage(t *testing.T) {
+	Config := io.NewConf()
+
+	prompt := "This is an example prompt"
+	language := "powershell"
+	cli_input := "fl conf --language=" + language + " " + prompt
+	wasConfCmd, err := ConfParse(strings.Split(cli_input, " "), &Config)
+	if !wasConfCmd || err != nil {
+		t.Fatalf(`ConfParse("%s") = (%v, %v). Expected (true, nil)`, cli_input, wasConfCmd, err)
+	}
+	if Config.Language != language {
+		t.Fatalf(`ConfParse("%s") = %s. Expected '%s'`, cli_input, Config.Language, language)
+	}
+}
+
 /**********************
 * Validate multiple flag interactions
 *********************/
 
 // test help activates despite invalid prompt
 func TestArgParseHelpNoPrompt(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := ""
 	cli_input := "fl -v -h" + " " + prompt
@@ -172,7 +230,8 @@ func TestArgParseHelpNoPrompt(t *testing.T) {
 
 // test help with multiple flags, verify skip prompt parsing
 func TestArgParseHelpMultipleFlags(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	expectedPrompt := "" // skip prompt when -h is found
@@ -188,7 +247,8 @@ func TestArgParseHelpMultipleFlags(t *testing.T) {
 
 // test ArgParse with all flags + prompt (except -h!)
 func TestArgParseAllFlags(t *testing.T) {
-	Flags := ConstructFlags()
+	Config := io.NewConf()
+	Flags := ConstructFlags(Config)
 
 	prompt := "This is an example prompt"
 	outfile := "outfile"

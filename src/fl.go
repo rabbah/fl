@@ -15,7 +15,7 @@ import (
 // REMOVE THIS LATER
 const (
 	// url of the Flow endpoint
-	apiUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
+	apiUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
 )
 
 func init() {
@@ -36,7 +36,7 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, Flags.Prompt)
+	res, err := web.PromptAI(apiUrl, Flags.Prompt, Flags.Language)
 	if err != nil {
 		fmt.Printf("Failed to call Flows API: %s\n", err)
 		os.Exit(1)
@@ -56,7 +56,21 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	fmt.Println(result)
 	fmt.Println()
 
+	// copy to clipboard
 	clipboard.Write(clipboard.FmtText, []byte(result))
+
+	// check if explain flag, then look
+	if Flags.Explain {
+		helpers.Print(Flags.Verbose, "Sending command for explanation...")
+
+		explanation, err := web.ExplainCommand(result, Flags.Language)
+		if err != nil {
+			fmt.Printf("Failed to call Flows API: %s\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(explanation)
+	}
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
@@ -95,9 +109,6 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 func main() {
 
-	// initialize flags struct
-	Flags := helpers.ConstructFlags()
-
 	// get config data
 	Config, err := io.ReadConf()
 	if err != nil {
@@ -123,6 +134,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	// initialize flags struct
+	Flags := helpers.ConstructFlags(Config)
 	// parse arguments and recieve prompt
 	err = helpers.ArgParse(os.Args, &Flags)
 
