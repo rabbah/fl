@@ -76,14 +76,14 @@ func newGPTViewModel(Flags *helpers.FlagStruct, Config *io.Config) gptViewModel 
 
 func (m gptViewModel) Init() tea.Cmd {
 	if m.prompt != "" {
-		return sendPrompt(m.prompt)
+		return sendPrompt(m.prompt, m.Flags.Language)
 	}
 	return nil
 }
 
-func sendPrompt(prompt string) tea.Cmd {
+func sendPrompt(prompt string, language string) tea.Cmd {
 	return func() tea.Msg {
-		res, err := web.GenerateCommand(prompt)
+		res, err := web.GenerateCommand(prompt, language)
 		return webCmdGenMsg{res, err}
 	}
 }
@@ -112,7 +112,7 @@ func (m gptViewModel) updatePrompt(msg userPromptMsg) (gptViewModel, tea.Cmd) {
 	m.viewport.SetContent(m.content)
 	m.state = waitForCommand
 
-	cmd := sendPrompt(m.prompt)
+	cmd := sendPrompt(m.prompt, m.Flags.Language)
 	return m, cmd
 }
 

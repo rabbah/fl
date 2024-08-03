@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
 /**********************
@@ -15,17 +13,22 @@ import (
 
 const (
 	// url of the Flow endpoint
-	commandGenerationUrl = "https://flow.pstmn-beta.io/api/4e5b4cfcdec54831a31d9f38aaf1a938"
+	commandGenerationUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
 	explainUrl           = "https://flow.pstmn-beta.io/api/30292fd2914e417a8b2d61e76b73edeb"
 )
 
 /* This is a combination of PromptAI and ParseResponse.
  * The other two functions should be removed appropriately when possible
  */
-func GenerateCommand(prompt string) (result string, err error) {
+func GenerateCommand(prompt string, language string) (result string, err error) {
 	var data map[string]interface{}
 
-	response, err := http.Post(commandGenerationUrl, "application/json", strings.NewReader(fmt.Sprintf(`{"prompt": "%s"}`, prompt)))
+	req := map[string]string{
+		"prompt":   prompt,
+		"language": language,
+	}
+	reqJSON, _ := json.Marshal(req)
+	response, err := http.Post(commandGenerationUrl, "application/json", bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return "", err
 	}
