@@ -152,6 +152,10 @@ func (m gptViewModel) updateCommand(msg webCmdGenMsg) (gptViewModel, tea.Cmd) {
 		cmds = append(cmds, changeModelFocus(uInputView))
 	}
 
+	if m.Flags.Explain {
+		cmds = append(cmds, sendExplain(m.command, m.Flags.Language))
+	}
+
 	if m.Flags.Output {
 		cmds = append(cmds, saveOutput(m.Flags.Outfile, m.command))
 	}

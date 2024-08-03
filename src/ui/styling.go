@@ -17,6 +17,9 @@ var (
 	gptViewWidth      = 78
 	gptPlaceholderTxt = "Waiting for prompt..."
 
+	explainViewHeight = 14
+	explainViewWidth  = 50
+
 	uInputHeight         = 2
 	uInputWidth          = 110
 	uInputPlaceholderTxt = "Describe the command you would like to generate..."
@@ -47,6 +50,11 @@ var (
 			Height(uInputHeight).
 			Align(lipgloss.Left, lipgloss.Left).
 			BorderStyle(lipgloss.NormalBorder())
+	explainStyle = lipgloss.NewStyle().
+			Width(explainViewWidth).
+			Height(explainViewHeight).
+			Align(lipgloss.Left, lipgloss.Left).
+			BorderStyle(lipgloss.NormalBorder())
 	// help
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpColor)).
@@ -67,6 +75,7 @@ func viewBuilder(m mainModel,
 	uInputStyle lipgloss.Style,
 	gptStyle lipgloss.Style,
 	flagStyle lipgloss.Style,
+	explainStyle lipgloss.Style,
 	help string,
 ) (render string) {
 
@@ -80,6 +89,11 @@ func viewBuilder(m mainModel,
 		lipgloss.Left,
 		render,
 		uInputStyle.Render(m.models[uInputView].View()),
+	)
+	render = lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		render,
+		explainStyle.Render(m.models[explainView].View()),
 	)
 
 	// help

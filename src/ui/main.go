@@ -26,6 +26,7 @@ const (
 	uInputView sessionState = iota
 	gptView
 	flagsView
+	explainView
 )
 
 type mainModel struct {
@@ -56,6 +57,7 @@ func newModel(Flags *helpers.FlagStruct, Config *io.Config) mainModel {
 	m.models[uInputView] = newUserInputModel()
 	m.models[gptView] = newGPTViewModel(Flags, Config)
 	m.models[flagsView] = newFlagsModel(Flags, Config)
+	m.models[explainView] = newExplainViewModel()
 
 	// if prompt supplied through cli, focus on gpt output
 	if Flags.Prompt != "" {
@@ -149,12 +151,15 @@ func (m mainModel) appView() string {
 	switch m.state {
 	case uInputView:
 		help := "\nenter: submit prompt"
-		s += viewBuilder(m, setFocus(uInputStyle), gptStyle, flagsStyle, help)
+		s += viewBuilder(m, setFocus(uInputStyle), gptStyle, flagsStyle, explainStyle, help)
 	case gptView:
-		s += viewBuilder(m, uInputStyle, setFocus(gptStyle), flagsStyle, help)
+		s += viewBuilder(m, uInputStyle, setFocus(gptStyle), flagsStyle, explainStyle, help)
 	case flagsView:
 		help := "\nenter: toggle flag • up: scroll up • down: scroll down"
-		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), help)
+		s += viewBuilder(m, uInputStyle, gptStyle, setFocus(flagsStyle), explainStyle, help)
+	case explainView:
+		help := "\nup: scroll up • down: scroll down"
+		s += viewBuilder(m, uInputStyle, gptStyle, flagsStyle, setFocus(explainStyle), help)
 	}
 
 	return s
