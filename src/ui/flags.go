@@ -18,28 +18,30 @@ import (
 const (
 	autoexecute = iota
 	prompt
+	explain
 	output
 )
 
 // avoid prompting for input by specifying default outfile name
-const default_outfile_name = "fl.out"
 const default_placeholder = "enter filename"
 
 var (
-	flags_allowed = []string{"autoexecute", "prompt", "output"}
+	flags_allowed = []string{"autoexecute", "prompt", "explain", "output"}
 )
 
 // return string for future opts
-func (m flagsModel) flagsSelected(cursor int) (opts string, ok bool) {
+func (m flagsModel) flagsSelected(cursor int) (ok bool) {
 	switch cursor {
 	case autoexecute:
-		return "", m.Config.Autoexec
+		return m.Config.Autoexec
 	case prompt:
-		return "", m.Flags.PromptExec
+		return m.Flags.PromptExec
+	case explain:
+		return m.Flags.Explain
 	case output:
-		return "", m.Flags.Output
+		return m.Flags.Output
 	default:
-		return "", false
+		return false
 	}
 }
 
@@ -49,6 +51,8 @@ func (m flagsModel) setFlag(cursor int, setValue bool) {
 		m.Config.Autoexec = setValue
 	case prompt:
 		m.Flags.PromptExec = setValue
+	case explain:
+		m.Flags.Explain = setValue
 	case output:
 		m.Flags.Output = setValue
 	default:
@@ -64,6 +68,9 @@ func (m flagsModel) toggleFlag(cursor int) (newValue bool) {
 	case prompt:
 		m.Flags.PromptExec = !m.Flags.PromptExec
 		return m.Flags.PromptExec
+	case explain:
+		m.Flags.Explain = !m.Flags.Explain
+		return m.Flags.Explain
 	case output:
 		m.Flags.Output = !m.Flags.Output
 		return m.Flags.Output
@@ -181,7 +188,7 @@ func (m flagsModel) View() string {
 
 		// Is this choice selected?
 		checked := " " // not selected
-		if _, ok := m.flagsSelected(i); ok {
+		if ok := m.flagsSelected(i); ok {
 			checked = flagsSelected // selected!
 		}
 
