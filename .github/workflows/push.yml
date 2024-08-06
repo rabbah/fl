@@ -1,4 +1,4 @@
-# .github/workflows/release.yaml
+# .github/workflows/push.yaml
 
 name: Run Test on Push
 on:

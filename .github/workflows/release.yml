@@ -25,7 +25,6 @@ jobs:
           
   build_release:
     name: Build Release
-    if: github.ref == 'refs/heads/main'
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
