@@ -57,7 +57,7 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	// copy to clipboard
 	clipboard.Write(clipboard.FmtText, []byte(result))
 
-	// check if explain flag, then look
+	// check if explain flag, then call explain
 	if Flags.Explain {
 		helpers.Print(Flags.Verbose, "Sending command for explanation...")
 
