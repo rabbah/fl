@@ -29,8 +29,22 @@ func init() {
 }
 
 /**********************
- * main
+ * TUI-based logic
  *********************/
+
+func startTui(Flags helpers.FlagStruct, Config io.Config) {
+
+	/*
+	 *@DISABLED until TUI available for production
+	 */
+	// err := ui.RunProgram(&Flags)
+	// if err != nil {
+	// 	fmt.Printf("Error running TUI: %v", err)
+	// 	os.Exit(1)
+	// }
+
+	fmt.Println("TUI is disabled for now - see '-h' for CLI usage!")
+}
 
 func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
@@ -156,13 +170,7 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		/* @DISABLED while changing argparse and adding config options
-		 * err = ui.RunProgram(&Flags)
-		 * if err != nil {
-		 * 	fmt.Printf("Error running TUI: %v", err)
-		 * 	os.Exit(1)
-		 * }
-		 */
+		startTui(Flags, Config)
 	} else {
 		// execute in-line if TUI flag not set
 		noTui(Flags, Config)

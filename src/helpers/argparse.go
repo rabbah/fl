@@ -87,6 +87,11 @@ func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	Flags.PromptExec = true
 }
 
+func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
+	*startPromptIndex++
+	Flags.Tui = true
+}
+
 func flagsHandlerExplain(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
 	Flags.Explain = true
@@ -158,12 +163,6 @@ func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
 
 // parse the user input for potential prompts
 func ArgParse(args []string, Flags *FlagStruct) (err error) {
-	// Check if command line arguments are provided
-	if len(args) < 2 {
-		// expecting at least 2 arguments
-		return errors.New("expecting at least 2 args")
-	}
-
 	// Start of the user prompt (after args have been parsed)
 	startPromptIndex := 1
 	// flag to exit for loop if non-flag detected
@@ -186,6 +185,8 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			flagsHandlerVerbose(Flags, &startPromptIndex)
 		case "-p":
 			flagsHandlerPrompt(Flags, &startPromptIndex)
+		case "-t":
+			flagsHandlerTui(Flags, &startPromptIndex)
 		case "-e":
 			flagsHandlerExplain(Flags, &startPromptIndex)
 		case "-o":
@@ -206,9 +207,16 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 		return errors.New("outfile cannot be empty")
 	}
 
+	// fl by itself should activate TUI
 	Flags.Prompt = strings.Join(args[startPromptIndex:], " ")
 	if Flags.Prompt == "" {
-		return errors.New("prompt cannot be empty")
+		// check no flags or only -t => enter TUI. err otherwise.
+		if startPromptIndex == 1 || Flags.Tui {
+			Flags.Tui = true // set true despite current value
+			return nil
+		} else {
+			return errors.New("prompt cannot be empty")
+		}
 	}
 
 	return nil
