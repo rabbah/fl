@@ -8,7 +8,7 @@ on:
 
 permissions:
     contents: write
-
+            
 jobs:
   create_release:
     name: Create Release
@@ -30,11 +30,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            release_suffix: ubuntu
+            release_suffix: ubuntu.tar.gz
           - os: macos-latest
-            release_suffix: mac
+            release_suffix: mac.tar.gz
           - os: windows-latest
-            release_suffix: windows
+            release_suffix: windows.tar.gz
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -51,29 +51,33 @@ jobs:
           go get fl
           cd ..
 
+      - name: Build # Same on all machines
+        run: |
+          cd src
+          go build -v -o fl
+          cd ..
+          mv src/fl .
+
       - name: Run Linux Build
         if: matrix.os == 'ubuntu-latest'
         run: |
-          cd src
-          go build -v -o fl-ubuntu
-          cd ..
+          chmod +x fl
+          tar -cvf fl-ubuntu.tar.gz fl README.md
       
       - name: Run Mac Build
         if: matrix.os == 'macos-latest'
         run: |
-          cd src
-          go build -v -o fl-mac
-          cd ..
+          chmod +x fl
+          tar -cvf fl-mac.tar.gz fl README.md
 
       - name: Run Windows Build
         if: matrix.os == 'windows-latest'
         run: |
-          cd src
-          go build -v -o fl-windows
-          cd ..
+          chmod +x fl
+          tar -cvf fl-windows.tar.gz fl README.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create_release.outputs.tag-name }}
-          files: src/fl-${{ matrix.release_suffix }}
+          files: fl-${{ matrix.release_suffix }}

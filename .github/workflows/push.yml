@@ -1,8 +1,9 @@
 # .github/workflows/push.yaml
 
-name: Run Test on Push
+name: Run Test on PR
 on:
-  push:
+  pull_request:
+    branches:
           
 jobs:
   run_test:
