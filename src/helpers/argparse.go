@@ -138,7 +138,7 @@ var (
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
 func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
-	if args[1] == "conf" {
+	if len(args) > 1 && args[1] == "conf" {
 		if regex_autoexecute.MatchString(args[2]) {
 			confHandlerAutoexec(Config, args[2])
 		} else if regex_language.MatchString(args[2]) {
