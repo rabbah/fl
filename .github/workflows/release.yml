@@ -34,7 +34,7 @@ jobs:
           - os: macos-latest
             release_suffix: mac.tar.gz
           - os: windows-latest
-            release_suffix: windows.tar.gz
+            release_suffix: windows.zip
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -74,7 +74,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           chmod +x fl
-          tar -cvf fl-windows.tar.gz fl README.md
+          mv fl fl.exe
+          tar -cvf fl-windows.tar.gz fl.exe README.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
