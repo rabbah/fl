@@ -11,15 +11,6 @@ import (
 	"golang.design/x/clipboard"
 )
 
-/**********************
- * globals
- *********************/
-
-const (
-	// url of the Flow endpoint
-	apiUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
-)
-
 func init() {
 	err := clipboard.Init()
 	if err != nil {
@@ -52,18 +43,9 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, Flags.Prompt, Flags.Language)
+	result, err := web.GenerateCommand(Flags.Prompt, Flags.Language)
 	if err != nil {
-		fmt.Printf("Failed to call Flows API: %s\n", err)
-		os.Exit(1)
-	}
-	defer res.Body.Close()
-
-	// Parse the response body as JSON
-	helpers.Print(Flags.Verbose, "Parsing response...")
-	result, err := web.ParseResponse(res)
-	if err != nil {
-		fmt.Printf(result, err)
+		fmt.Printf("Failed to call Flows API - %s: %v\n", result, err)
 		os.Exit(1)
 	}
 
@@ -81,7 +63,7 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 		explanation, err := web.ExplainCommand(result, Flags.Language)
 		if err != nil {
-			fmt.Printf("Failed to call Flows API: %s\n", err)
+			fmt.Printf("Failed to call Flows API - %s: %v\n", explanation, err)
 			os.Exit(1)
 		}
 
