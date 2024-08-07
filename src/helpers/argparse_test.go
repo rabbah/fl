@@ -36,7 +36,7 @@ func TestArgParseOneFlagNoPrompt(t *testing.T) {
 	}
 }
 
-// test ArgParse raises err when prompt is empty
+// test ArgParse sets tui flag if no args passed
 func TestArgParseEmpty(t *testing.T) {
 	Config := io.NewConf()
 	Flags := ConstructFlags(Config)
@@ -44,7 +44,7 @@ func TestArgParseEmpty(t *testing.T) {
 	prompt := ""
 	cli_input := "fl" + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
-	if err == nil {
+	if Flags.Prompt != prompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 	if Flags.PromptExec || Flags.Verbose || Flags.Help || Flags.Output || !Flags.Tui {
@@ -245,7 +245,7 @@ func TestArgParseHelpMultipleFlags(t *testing.T) {
 	}
 }
 
-// test ArgParse with all flags + prompt
+// test ArgParse with all flags + prompt (except -h!)
 func TestArgParseAllFlags(t *testing.T) {
 	Config := io.NewConf()
 	Flags := ConstructFlags(Config)
@@ -259,5 +259,8 @@ func TestArgParseAllFlags(t *testing.T) {
 	}
 	if Flags.Prompt != prompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
+	}
+	if Flags.Outfile != outfile {
+		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, outfile)
 	}
 }
