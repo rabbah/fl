@@ -58,19 +58,19 @@ jobs:
           cd ..
           mv src/fl .
 
-      - name: Run Linux Build
+      - name: Linux Post Build
         if: matrix.os == 'ubuntu-latest'
         run: |
           chmod +x fl
           tar -cvf fl-ubuntu.tar.gz fl README.md
       
-      - name: Run Mac Build
+      - name: Mac Post Build
         if: matrix.os == 'macos-latest'
         run: |
           chmod +x fl
           tar -cvf fl-mac.tar.gz fl README.md
 
-      - name: Run Windows Build
+      - name: Windows Post Build
         if: matrix.os == 'windows-latest'
         run: |
           chmod +x fl

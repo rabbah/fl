@@ -1,9 +1,11 @@
-# .github/workflows/push.yaml
+# .github/workflows/unit_test.yaml
 
-name: Run Test on PR
+name: Unit Tests
 on:
   pull_request:
+  push:
     branches:
+      - main # triggers the badge on the README.md
           
 jobs:
   run_test:
