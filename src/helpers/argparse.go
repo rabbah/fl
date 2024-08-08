@@ -36,6 +36,14 @@ func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 	}
 }
 
+/**********************
+ * Other args and parsing helpers
+ *********************/
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == ""
+}
+
 // useage definition functions to explain command and its args
 var Usage = func() {
 	fmt.Print(`
@@ -105,14 +113,6 @@ func flagsHandlerOutput(Flags *FlagStruct, startPromptIndex *int, outfile string
 func flagsHandlerLanguage(Flags *FlagStruct, startPromptIndex *int, language string) {
 	*startPromptIndex += 2
 	Flags.Language = language
-}
-
-/**********************
- * Other parse helpers
- *********************/
-
-func IsEmpty(str string) bool {
-	return strings.TrimSpace(str) == ""
 }
 
 /**********************
