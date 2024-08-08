@@ -15,7 +15,7 @@ var (
 	new_conf_statement = `
     PLEASE READ:
     As a safety precaution, the default behavior of this program is to disable automatic execution of
-    generated commands and necer execute a command. To change these default behaviors, read'fl -h' to
+    generated commands and never execute a command. To change these default behaviors, read'fl -h' to
     view usage.
 	Default config path: '$HOME/.flconfig'
 
