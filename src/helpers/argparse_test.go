@@ -252,15 +252,19 @@ func TestArgParseAllFlags(t *testing.T) {
 
 	prompt := "This is an example prompt"
 	outfile := "outfile"
-	cli_input := "fl -p -v -o " + outfile + " -t" + " " + prompt
+	language := "powershell"
+	cli_input := "fl -p -v -t -e -o " + outfile + " -l " + language + " " + prompt
 	err := ArgParse(strings.Split(cli_input, " "), &Flags)
 	if !Flags.PromptExec || !Flags.Verbose || Flags.Help || !Flags.Output || !Flags.Tui {
-		t.Fatalf(`ArgParse("%s") expects all and only the -n, -v, -o, -t flags. Actual: %+v`, cli_input, Flags)
+		t.Fatalf(`ArgParse("%s") expects all and only the -p, -v, -o, -t flags. Actual: %+v`, cli_input, Flags)
 	}
 	if Flags.Prompt != prompt || err != nil {
 		t.Fatalf(`ArgParse("%s") = "%s", %v. Expected '%s'`, cli_input, Flags.Prompt, err, prompt)
 	}
 	if Flags.Outfile != outfile {
 		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, outfile)
+	}
+	if Flags.Language != language {
+		t.Fatalf(`ArgParse("%s") yields outfile = '%s'. Expected '%s'`, cli_input, Flags.Outfile, language)
 	}
 }
