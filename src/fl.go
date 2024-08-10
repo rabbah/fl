@@ -4,6 +4,7 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
+	"fl/ui"
 	"fl/web"
 	"fmt"
 	"os"
@@ -25,16 +26,11 @@ func init() {
 
 func startTui(Flags helpers.FlagStruct, Config io.Config) {
 
-	/*
-	 *@DISABLED until TUI available for production
-	 */
-	// err := ui.RunProgram(&Flags)
-	// if err != nil {
-	// 	fmt.Printf("Error running TUI: %v", err)
-	// 	os.Exit(1)
-	// }
-
-	fmt.Println("TUI is disabled for now - see '-h' for CLI usage!")
+	err := ui.RunProgram(&Flags, &Config)
+	if err != nil {
+		fmt.Printf("Error running TUI: %v", err)
+		os.Exit(1)
+	}
 }
 
 func noTui(Flags helpers.FlagStruct, Config io.Config) {
