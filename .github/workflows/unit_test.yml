@@ -1,0 +1,33 @@
+# .github/workflows/unit_test.yaml
+
+name: Unit Tests
+on:
+  pull_request:
+  push:
+    branches:
+      - main # triggers the badge on the README.md
+          
+jobs:
+  run_test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Install Dependencies
+        run: |
+          cd src
+          go get fl
+          cd ..
+
+      - name: Run Linux Test
+        run: |
+          cd src
+          go test -v ./...
+          cd ..

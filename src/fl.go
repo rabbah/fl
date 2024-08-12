@@ -12,12 +12,6 @@ import (
 	"golang.design/x/clipboard"
 )
 
-// REMOVE THIS LATER
-const (
-	// url of the Flow endpoint
-	apiUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
-)
-
 func init() {
 	err := clipboard.Init()
 	if err != nil {
@@ -27,8 +21,17 @@ func init() {
 }
 
 /**********************
- * fl in-line execution
+ * TUI-based logic
  *********************/
+
+func startTui(Flags helpers.FlagStruct, Config io.Config) {
+
+	err := ui.RunProgram(&Flags, &Config)
+	if err != nil {
+		fmt.Printf("Error running TUI: %v", err)
+		os.Exit(1)
+	}
+}
 
 func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
@@ -36,18 +39,9 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
-	res, err := web.PromptAI(apiUrl, Flags.Prompt, Flags.Language)
+	result, err := web.GenerateCommand(Flags.Prompt, Flags.Language)
 	if err != nil {
-		fmt.Printf("Failed to call Flows API: %s\n", err)
-		os.Exit(1)
-	}
-	defer res.Body.Close()
-
-	// Parse the response body as JSON
-	helpers.Print(Flags.Verbose, "Parsing response...")
-	result, err := web.ParseResponse(res)
-	if err != nil {
-		fmt.Printf(result, err)
+		fmt.Printf("Failed to call Flows API - %s: %v\n", result, err)
 		os.Exit(1)
 	}
 
@@ -59,13 +53,13 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	// copy to clipboard
 	clipboard.Write(clipboard.FmtText, []byte(result))
 
-	// check if explain flag, then look
+	// check if explain flag, then call explain
 	if Flags.Explain {
 		helpers.Print(Flags.Verbose, "Sending command for explanation...")
 
 		explanation, err := web.ExplainCommand(result, Flags.Language)
 		if err != nil {
-			fmt.Printf("Failed to call Flows API: %s\n", err)
+			fmt.Printf("Failed to call Flows API - %s: %v\n", explanation, err)
 			os.Exit(1)
 		}
 
@@ -154,11 +148,7 @@ func main() {
 
 	// Otherwise check for TUI flag
 	if Flags.Tui {
-		err = ui.RunProgram(&Flags, &Config)
-		if err != nil {
-			fmt.Printf("Error running TUI: %v", err)
-			os.Exit(1)
-		}
+		startTui(Flags, Config)
 	} else {
 		// execute in-line if TUI flag not set
 		noTui(Flags, Config)

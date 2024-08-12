@@ -12,94 +12,76 @@ import (
  *********************/
 
 const (
-	// url of the Flow endpoint
-	commandGenerationUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
 	explainUrl           = "https://flow.pstmn-beta.io/api/30292fd2914e417a8b2d61e76b73edeb"
+	commandGenerationUrl = "https://flow.pstmn-beta.io/api/38a029541f794a65afb284a7f4e7d3b3"
 )
 
-/* This is a combination of PromptAI and ParseResponse.
- * The other two functions should be removed appropriately when possible
- */
-func GenerateCommand(prompt string, language string) (result string, err error) {
-	var data map[string]interface{}
-
-	req := map[string]string{
-		"prompt":   prompt,
-		"language": language,
-	}
-	reqJSON, _ := json.Marshal(req)
-	response, err := http.Post(commandGenerationUrl, "application/json", bytes.NewBuffer(reqJSON))
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(&data)
-	if err != nil {
-		return "Failed to parse Flows API response: %s\n", err
-	}
-
-	result, ok := data["output"].(string)
-	if !ok {
-		return "", errors.New("expected output field not found in Flows API response")
-	}
-
-	return result, nil
-}
-
 func ExplainCommand(command string, language string) (result string, err error) {
-	var data map[string]interface{}
-
 	// convert to JSON for proper escaping of strings which may be in the command
 	req := map[string]string{
 		"command":  command,
 		"language": language,
 	}
 	reqJSON, _ := json.Marshal(req)
-	response, err := http.Post(explainUrl, "application/json", bytes.NewBuffer(reqJSON))
 
+	response, msg, err := reqFlows(explainUrl, reqJSON)
 	if err != nil {
-		return "Failed to send response", err
+		return msg, err
 	}
 	defer response.Body.Close()
 
-	err = json.NewDecoder(response.Body).Decode(&data)
+	result, msg, err = parseResponse(response)
 	if err != nil {
-		return "Failed to parse Flows API response: %s\n", err
-	}
-
-	result, ok := data["output"].(string)
-	if !ok {
-		return "", errors.New("expected output field not found in Flows API response")
+		return msg, err
 	}
 
 	return result, nil
 }
 
-func PromptAI(apiUrl string, prompt string, language string) (res *http.Response, err error) {
+func GenerateCommand(prompt string, language string) (result string, err error) {
 	// convert to JSON for proper escaping of strings which may be in the command
 	req := map[string]string{
 		"prompt":   prompt,
 		"language": language,
 	}
 	reqJSON, _ := json.Marshal(req)
-	res, err = http.Post(apiUrl, "application/json", bytes.NewBuffer(reqJSON))
-	return res, err
-}
 
-func ParseResponse(res *http.Response) (result string, err error) {
-	var data map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&data)
-
+	response, msg, err := reqFlows(commandGenerationUrl, reqJSON)
 	if err != nil {
-		return "Failed to parse Flows API response: %s\n", err
+		return msg, err
 	}
+	defer response.Body.Close()
 
-	result, ok := data["output"].(string)
-
-	if !ok {
-		return "", errors.New("expected output field not found in Flows API response")
+	result, msg, err = parseResponse(response)
+	if err != nil {
+		return msg, err
 	}
 
 	return result, nil
+}
+
+func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, err error) {
+	res, err = http.Post(apiUrl, "application/json", bytes.NewBuffer(reqJSON))
+
+	if err != nil {
+		return nil, "Failed to send response", err
+	}
+
+	return res, "", err
+}
+
+func parseResponse(res *http.Response) (result string, msg string, err error) {
+	var data map[string]interface{}
+
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return "", "Failed to parse Flows API response", err
+	}
+
+	result, ok := data["output"].(string)
+	if !ok {
+		return "", "", errors.New("expected output field not found in Flows API response")
+	}
+
+	return result, "", err
 }

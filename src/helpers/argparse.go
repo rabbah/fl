@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fl/io"
 	"fmt"
-	"regexp"
 	"strings"
 )
 
@@ -36,6 +35,14 @@ func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 		Language:   Config.Language,
 		Len:        7,
 	}
+}
+
+/**********************
+ * Other args and parsing helpers
+ *********************/
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == ""
 }
 
 // useage definition functions to explain command and its args
@@ -109,55 +116,6 @@ func flagsHandlerLanguage(Flags *FlagStruct, startPromptIndex *int, language str
 	Flags.Language = language
 }
 
-func confHandlerAutoexec(Config *io.Config, arg string) {
-	// rewrite autoexec with right side of '='
-	value := strings.Split(arg, "=")[1]
-	if strings.ToLower(value) == "true" {
-		Config.Autoexec = true
-	} else {
-		Config.Autoexec = false
-	}
-}
-
-func confHandlerLanguage(Config *io.Config, arg string) {
-	// rewrite autoexec with right side of '='
-	value := strings.Split(arg, "=")[1]
-	Config.Language = strings.ToLower(value)
-}
-
-/**********************
- * Other parse helpers
- *********************/
-
-func IsEmpty(str string) bool {
-	return strings.TrimSpace(str) == ""
-}
-
-/**********************
- * ConfParse
- *********************/
-
-var (
-	regex_autoexecute = regexp.MustCompile("--autoexecute=")
-	regex_language    = regexp.MustCompile("--language=")
-)
-
-// check if this is a config command - follow format 'fl config <CONFIGCMD>'
-func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
-	if len(args) > 1 && args[1] == "conf" {
-		if regex_autoexecute.MatchString(args[2]) {
-			confHandlerAutoexec(Config, args[2])
-		} else if regex_language.MatchString(args[2]) {
-			confHandlerLanguage(Config, args[2])
-		} else {
-			return true, errors.New("config param not found")
-		}
-		return true, nil
-	} else {
-		return false, nil
-	}
-}
-
 /**********************
  * ArgParse
  *********************/
@@ -208,12 +166,12 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 		return errors.New("outfile cannot be empty")
 	}
 
-	// fl BY ITSELF should be the same as entering TUI
+	// fl by itself should activate TUI
 	Flags.Prompt = strings.Join(args[startPromptIndex:], " ")
 	if Flags.Prompt == "" {
 		// check no flags or only -t => enter TUI. err otherwise.
 		if startPromptIndex == 1 || Flags.Tui {
-			Flags.Tui = true // whether or not set, set it now
+			Flags.Tui = true // set true despite current value
 			return nil
 		} else {
 			return errors.New("prompt cannot be empty")

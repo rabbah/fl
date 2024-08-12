@@ -1,5 +1,7 @@
 # `fl`: Command Line AId powered by Postman Flows
 
+[![Unit Tests](https://github.com/rabbah/fl/actions/workflows/unit_test.yml/badge.svg?branch=main&event=push)](https://github.com/rabbah/fl/actions/workflows/unit_test.yml)
+
 This command line tool, `fl`, is designed to convert natural language descriptions of command line tasks into valid Unix commands.
 It simplifies the process of executing tasks on a Unix command line by allowing users to describe their actions in plain language.
 

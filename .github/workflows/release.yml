@@ -1,0 +1,84 @@
+# .github/workflows/release.yaml
+
+name: Create Release on Version Tagged Push
+on:
+  push:
+    tags:
+      - 'v[0-9].[0-9]+.[0-9]+'
+
+permissions:
+    contents: write
+            
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          
+  build_release:
+    name: Build Release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            release_suffix: ubuntu.tar.gz
+          - os: macos-latest
+            release_suffix: mac.tar.gz
+          - os: windows-latest
+            release_suffix: windows.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Install Dependencies
+        run: |
+          cd src
+          go get fl
+          cd ..
+
+      - name: Build # Same on all machines
+        run: |
+          cd src
+          go build -v -o fl
+          cd ..
+          mv src/fl .
+
+      - name: Linux Post Build
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          chmod +x fl
+          tar -cvf fl-ubuntu.tar.gz fl README.md
+      
+      - name: Mac Post Build
+        if: matrix.os == 'macos-latest'
+        run: |
+          chmod +x fl
+          tar -cvf fl-mac.tar.gz fl README.md
+
+      - name: Windows Post Build
+        if: matrix.os == 'windows-latest'
+        run: |
+          chmod +x fl
+          mv fl fl.exe
+          tar -cvf fl-windows.tar.gz fl.exe README.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create_release.outputs.tag-name }}
+          files: fl-${{ matrix.release_suffix }}
