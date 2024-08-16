@@ -8,30 +8,30 @@ import (
 )
 
 const (
-	verifyUrl = "https://5709c812-4c6b-4bab-af35-a1e5a1413eda.mock.pstmn.io/register"
+	registerUrl = "https://5709c812-4c6b-4bab-af35-a1e5a1413eda.mock.pstmn.io/register"
 )
 
-type InputVerify struct {
+type RequestRegister struct {
 	Input map[string]string
 }
 
-type OutputVerify struct {
+type ResponseRegister struct {
 	Output map[string]string
 }
 
-func VerifyIp(ip string) (result string, err error) {
-	req := InputVerify{
+func RegisterIp(ip string) (result string, err error) {
+	req := RequestRegister{
 		map[string]string{"ip": ip},
 	}
 	reqJSON, _ := json.Marshal(req)
 
-	response, msg, err := reqFlows(verifyUrl, reqJSON)
+	response, msg, err := reqFlows(registerUrl, reqJSON)
 	if err != nil {
 		return msg, err
 	}
 	defer response.Body.Close()
 
-	result, msg, err = parseResponse(response)
+	result, msg, err = parseIpRegister(response)
 	if err != nil {
 		return msg, err
 	}
@@ -49,8 +49,8 @@ func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, er
 	return res, "", err
 }
 
-func parseResponse(res *http.Response) (result string, msg string, err error) {
-	var data OutputVerify
+func parseIpRegister(res *http.Response) (result string, msg string, err error) {
+	var data ResponseRegister
 
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
