@@ -3,8 +3,7 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
+	"errors"
 	"net/http"
 )
 
@@ -26,17 +25,16 @@ func VerifyIp(ip string) (result string, err error) {
 	}
 	reqJSON, _ := json.Marshal(req)
 
-	fmt.Println("url: ", string(verifyUrl))
-	fmt.Println("input: ", string(reqJSON))
-
 	response, msg, err := reqFlows(verifyUrl, reqJSON)
 	if err != nil {
 		return msg, err
 	}
 	defer response.Body.Close()
 
-	bodyBytes, _ := io.ReadAll(response.Body)
-	result = string(bodyBytes)
+	result, msg, err = parseResponse(response)
+	if err != nil {
+		return msg, err
+	}
 
 	return result, nil
 }
@@ -51,13 +49,18 @@ func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, er
 	return res, "", err
 }
 
-func parseResponse(res *http.Response) (result OutputVerify, msg string, err error) {
+func parseResponse(res *http.Response) (result string, msg string, err error) {
 	var data OutputVerify
 
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
-		return data, "Failed to parse Flows API response", err
+		return "", "Failed to parse Flows API response", err
 	}
 
-	return data, "", err
+	errStr := data.Output["error"]
+	if errStr != "" {
+		return "", "", errors.New(errStr)
+	}
+
+	return data.Output["jwt"], "", err
 }
