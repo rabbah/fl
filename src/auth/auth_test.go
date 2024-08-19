@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+const (
+	EXTERNAL_IP = "104.30.160.203"
+)
+
 func TestRegisterIp(t *testing.T) {
 	ip := "1.1.1.1"
 	result, err := RegisterIp(ip)
@@ -44,5 +48,16 @@ func TestVerifyJwtFail(t *testing.T) {
 
 	if result != expectedResult || flid != expectedFlid || version != expectedVersion || err != nil {
 		t.Fatalf(`VerifyJwt(%s) = (%v, %s, %s, %v). Expected (%v, %s, %s, %v)`, jwt, result, flid, version, err, expectedResult, expectedFlid, expectedVersion, nil)
+	}
+}
+
+func TestGetIp(t *testing.T) {
+	t.Skip("This requires knowing your ext ip. Only execute test if ExternalIP is suspected to fail.")
+	expected := EXTERNAL_IP
+
+	ip, err := ExternalIP()
+
+	if ip != expected || err != nil {
+		t.Fatalf(`ExternalIP) = %s, %v. Expected %s, %v`, ip, err, expected, nil)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -12,6 +11,7 @@ import (
 const (
 	registerUrl = "https://add9d90f-2d32-483d-835f-3dd2cb814764.mock.pstmn.io/register"
 	verifyUrl   = "https://add9d90f-2d32-483d-835f-3dd2cb814764.mock.pstmn.io/verify"
+	extIpUrl    = "https://api.ipify.org"
 )
 
 type RequestRegister struct {
@@ -34,6 +34,19 @@ type ResponseVerify struct {
 			Version string `json:"version"`
 		} `json:"flid"`
 	} `json:"Output"`
+}
+
+func ExternalIP() (string, error) {
+	resp, err := http.Get(extIpUrl)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	ip, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(ip), nil
 }
 
 func RegisterIp(ip string) (result string, err error) {
@@ -61,8 +74,6 @@ func VerifyJwt(jwt string) (result bool, flid string, version string, err error)
 		jwt,
 	}
 	reqJSON, _ := json.Marshal(req)
-
-	fmt.Println("JWT: ", string(reqJSON))
 
 	response, _, err := reqFlows(verifyUrl, reqJSON)
 	if err != nil {
