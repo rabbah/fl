@@ -14,6 +14,29 @@ const (
 	extIpUrl    = "https://api.ipify.org"
 )
 
+type Request struct {
+	input Input
+}
+type Input interface{}
+type Output interface{}
+
+func (req Request) send(apiRequest string) (res Output, err error) {
+	reqJSON, _ := json.Marshal(req.input)
+
+	response, _, err := reqFlows(apiRequest, reqJSON)
+	if err != nil {
+		return res, err
+	}
+	defer response.Body.Close()
+
+	res, _, err = parseVerifyJwt(response)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 type RequestRegister struct {
 	Input map[string]string
 }
@@ -22,13 +45,14 @@ type ResponseRegister struct {
 	Output map[string]string
 }
 
-type RequestVerify struct {
-	Input string
+type VerifyInput struct {
+	Input string `json:"Input"`
 }
 
-type ResponseVerify struct {
+type VerifyOutput struct {
 	Output struct {
 		Valid bool `json:"valid"`
+		Quota int  `json:"quota"`
 		Flid  struct {
 			Flid    string `json:"flid"`
 			Version string `json:"version"`
@@ -70,22 +94,17 @@ func RegisterIp(ip string) (result string, err error) {
 }
 
 func VerifyJwt(jwt string) (result bool, flid string, version string, err error) {
-	req := RequestVerify{
+	input := VerifyInput{
 		jwt,
 	}
-	reqJSON, _ := json.Marshal(req)
+	req := Request{input}
 
-	response, _, err := reqFlows(verifyUrl, reqJSON)
+	res, err := req.send(verifyUrl)
 	if err != nil {
 		return false, "", "", err
 	}
-	defer response.Body.Close()
 
-	var parsedResponse ResponseVerify
-	parsedResponse, _, err = parseVerifyJwt(response)
-	if err != nil {
-		return false, "", "", err
-	}
+	parsedResponse := res.(VerifyOutput)
 
 	result = parsedResponse.Output.Valid
 	flid = parsedResponse.Output.Flid.Flid
@@ -120,7 +139,7 @@ func parseIpRegister(res *http.Response) (result string, msg string, err error) 
 	return data.Output["jwt"], "", err
 }
 
-func parseVerifyJwt(res *http.Response) (data ResponseVerify, msg string, err error) {
+func parseVerifyJwt(res *http.Response) (data VerifyOutput, msg string, err error) {
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return data, "Failed to parse Flows API response", err
