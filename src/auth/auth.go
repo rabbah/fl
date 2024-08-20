@@ -14,6 +14,17 @@ const (
 	extIpUrl    = "https://api.ipify.org"
 )
 
+func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, err error) {
+	res, err = http.Post(apiUrl, "application/json", bytes.NewReader(reqJSON))
+
+	if err != nil {
+		return nil, "Failed to send response", err
+	}
+
+	return res, "", err
+}
+
+// helper structs
 type Input interface{}
 type Output interface {
 	parse(res *http.Response)
@@ -22,6 +33,7 @@ type Request struct {
 	input Input
 }
 
+// private Request.send, get http response
 func (req Request) send(apiRequest string) (res *http.Response, err error) {
 	reqJSON, _ := json.Marshal(req.input)
 
@@ -33,6 +45,9 @@ func (req Request) send(apiRequest string) (res *http.Response, err error) {
 	return res, nil
 }
 
+/**
+ * Register IP request/response structures/functions
+ */
 type RegisterInput struct {
 	Input struct {
 		Ip string `json:"ip"`
@@ -46,6 +61,27 @@ type RegisterOutput struct {
 	} `json:"Output"`
 }
 
+func (RegisterOutput) parse(res *http.Response) (RegisterOutput, error) {
+	var tmp RegisterOutput
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return tmp, err
+	}
+
+	err = json.Unmarshal(bodyBytes, &tmp)
+	if err != nil {
+		return tmp, err
+	}
+
+	data := tmp
+	res.Body.Close()
+	return data, nil
+}
+
+/**
+ * Verify JWT request/response structures/functions
+ */
 type VerifyInput struct {
 	Input string `json:"Input"`
 }
@@ -79,25 +115,10 @@ func (VerifyOutput) parse(res *http.Response) (VerifyOutput, error) {
 	return data, nil
 }
 
-func (RegisterOutput) parse(res *http.Response) (RegisterOutput, error) {
-	var tmp RegisterOutput
-
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return tmp, err
-	}
-
-	err = json.Unmarshal(bodyBytes, &tmp)
-	if err != nil {
-		return tmp, err
-	}
-
-	data := tmp
-	res.Body.Close()
-	return data, nil
-}
-
-func ExternalIP() (string, error) {
+/**
+ * Public exposed functions
+ */
+func GetExternalIP() (string, error) {
 	resp, err := http.Get(extIpUrl)
 	if err != nil {
 		return "", err
@@ -160,14 +181,4 @@ func VerifyJwt(jwt string) (result bool, flid string, version string, err error)
 	version = output.Output.Flid.Version
 
 	return result, flid, version, nil
-}
-
-func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, err error) {
-	res, err = http.Post(apiUrl, "application/json", bytes.NewReader(reqJSON))
-
-	if err != nil {
-		return nil, "Failed to send response", err
-	}
-
-	return res, "", err
 }

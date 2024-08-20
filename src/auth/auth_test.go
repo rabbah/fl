@@ -55,7 +55,7 @@ func TestGetIp(t *testing.T) {
 	t.Skip("This requires knowing your ext ip. Only execute test if ExternalIP is suspected to fail.")
 	expected := EXTERNAL_IP
 
-	ip, err := ExternalIP()
+	ip, err := GetExternalIP()
 
 	if ip != expected || err != nil {
 		t.Fatalf(`ExternalIP) = %s, %v. Expected %s, %v`, ip, err, expected, nil)
