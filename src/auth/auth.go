@@ -14,22 +14,18 @@ const (
 	extIpUrl    = "https://api.ipify.org"
 )
 
+type Input interface{}
+type Output interface {
+	parse(res *http.Response)
+}
 type Request struct {
 	input Input
 }
-type Input interface{}
-type Output interface{}
 
-func (req Request) send(apiRequest string) (res Output, err error) {
+func (req Request) send(apiRequest string) (res *http.Response, err error) {
 	reqJSON, _ := json.Marshal(req.input)
 
-	response, _, err := reqFlows(apiRequest, reqJSON)
-	if err != nil {
-		return res, err
-	}
-	defer response.Body.Close()
-
-	res, _, err = parseVerifyJwt(response)
+	res, _, err = reqFlows(apiRequest, reqJSON)
 	if err != nil {
 		return res, err
 	}
@@ -58,6 +54,24 @@ type VerifyOutput struct {
 			Version string `json:"version"`
 		} `json:"flid"`
 	} `json:"Output"`
+}
+
+func (VerifyOutput) parse(res *http.Response) (VerifyOutput, error) {
+	var tmp VerifyOutput
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return tmp, err
+	}
+
+	err = json.Unmarshal(bodyBytes, &tmp)
+	if err != nil {
+		return tmp, err
+	}
+
+	data := tmp
+	res.Body.Close()
+	return data, nil
 }
 
 func ExternalIP() (string, error) {
@@ -97,6 +111,7 @@ func VerifyJwt(jwt string) (result bool, flid string, version string, err error)
 	input := VerifyInput{
 		jwt,
 	}
+	output := VerifyOutput{}
 	req := Request{input}
 
 	res, err := req.send(verifyUrl)
@@ -104,11 +119,14 @@ func VerifyJwt(jwt string) (result bool, flid string, version string, err error)
 		return false, "", "", err
 	}
 
-	parsedResponse := res.(VerifyOutput)
+	output, err = output.parse(res)
+	if err != nil {
+		return false, "", "", err
+	}
 
-	result = parsedResponse.Output.Valid
-	flid = parsedResponse.Output.Flid.Flid
-	version = parsedResponse.Output.Flid.Version
+	result = output.Output.Valid
+	flid = output.Output.Flid.Flid
+	version = output.Output.Flid.Version
 
 	return result, flid, version, nil
 }
@@ -137,18 +155,4 @@ func parseIpRegister(res *http.Response) (result string, msg string, err error) 
 	}
 
 	return data.Output["jwt"], "", err
-}
-
-func parseVerifyJwt(res *http.Response) (data VerifyOutput, msg string, err error) {
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return data, "Failed to parse Flows API response", err
-	}
-
-	err = json.Unmarshal(bodyBytes, &data)
-	if err != nil {
-		return data, "Failed to parse Flows API response", err
-	}
-
-	return data, "", err
 }
