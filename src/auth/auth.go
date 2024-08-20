@@ -33,12 +33,17 @@ func (req Request) send(apiRequest string) (res *http.Response, err error) {
 	return res, nil
 }
 
-type RequestRegister struct {
-	Input map[string]string
+type RegisterInput struct {
+	Input struct {
+		Ip string `json:"ip"`
+	} `json:"Input"`
 }
 
-type ResponseRegister struct {
-	Output map[string]string
+type RegisterOutput struct {
+	Output struct {
+		Error string `json:"error"`
+		Jwt   string `json:"jwt"`
+	} `json:"Output"`
 }
 
 type VerifyInput struct {
@@ -74,6 +79,24 @@ func (VerifyOutput) parse(res *http.Response) (VerifyOutput, error) {
 	return data, nil
 }
 
+func (RegisterOutput) parse(res *http.Response) (RegisterOutput, error) {
+	var tmp RegisterOutput
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return tmp, err
+	}
+
+	err = json.Unmarshal(bodyBytes, &tmp)
+	if err != nil {
+		return tmp, err
+	}
+
+	data := tmp
+	res.Body.Close()
+	return data, nil
+}
+
 func ExternalIP() (string, error) {
 	resp, err := http.Get(extIpUrl)
 	if err != nil {
@@ -88,21 +111,29 @@ func ExternalIP() (string, error) {
 }
 
 func RegisterIp(ip string) (result string, err error) {
-	req := RequestRegister{
-		map[string]string{"ip": ip},
+	input := RegisterInput{
+		Input: struct {
+			Ip string `json:"ip"`
+		}{Ip: ip},
 	}
-	reqJSON, _ := json.Marshal(req)
+	output := RegisterOutput{}
+	req := Request{input}
 
-	response, msg, err := reqFlows(registerUrl, reqJSON)
+	res, err := req.send(registerUrl)
 	if err != nil {
-		return msg, err
+		return "", err
 	}
-	defer response.Body.Close()
 
-	result, msg, err = parseIpRegister(response)
+	output, err = output.parse(res)
 	if err != nil {
-		return msg, err
+		return "", err
 	}
+
+	if output.Output.Error != "" {
+		return "", errors.New(output.Output.Error)
+	}
+
+	result = output.Output.Jwt
 
 	return result, nil
 }
@@ -139,20 +170,4 @@ func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, er
 	}
 
 	return res, "", err
-}
-
-func parseIpRegister(res *http.Response) (result string, msg string, err error) {
-	var data ResponseRegister
-
-	err = json.NewDecoder(res.Body).Decode(&data)
-	if err != nil {
-		return "", "Failed to parse Flows API response", err
-	}
-
-	errStr := data.Output["error"]
-	if errStr != "" {
-		return "", "", errors.New(errStr)
-	}
-
-	return data.Output["jwt"], "", err
 }
