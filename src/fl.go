@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fl/auth"
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
@@ -36,6 +37,13 @@ func startTui(Flags helpers.FlagStruct, Config io.Config) {
 func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
+
+	// Validate executing user
+	_, msg, err := auth.ValidateUser()
+	if err != nil {
+		fmt.Printf("%s: %v\n", msg, err)
+		os.Exit(1)
+	}
 
 	// Make the API call
 	helpers.Print(Flags.Verbose, "Sending prompt...")
