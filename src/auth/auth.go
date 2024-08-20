@@ -118,7 +118,7 @@ func (VerifyOutput) parse(res *http.Response) (VerifyOutput, error) {
 /**
  * Public exposed functions
  */
-func GetExternalIP() (string, error) {
+func getExternalIP() (string, error) {
 	resp, err := http.Get(extIpUrl)
 	if err != nil {
 		return "", err
@@ -131,7 +131,7 @@ func GetExternalIP() (string, error) {
 	return string(ip), nil
 }
 
-func RegisterIp(ip string) (output RegisterOutput, err error) {
+func registerIp(ip string) (output RegisterOutput, err error) {
 	input := RegisterInput{
 		Input: struct {
 			Ip string `json:"ip"`
@@ -156,7 +156,7 @@ func RegisterIp(ip string) (output RegisterOutput, err error) {
 	return output, nil
 }
 
-func VerifyJwt(jwt string) (output VerifyOutput, err error) {
+func verifyJwt(jwt string) (output VerifyOutput, err error) {
 	input := VerifyInput{
 		jwt,
 	}
@@ -173,4 +173,36 @@ func VerifyJwt(jwt string) (output VerifyOutput, err error) {
 	}
 
 	return output, nil
+}
+
+/**
+ * Validate the user by pub IP. Exit if any error encountered.
+ * Assume success iff err = nil.
+ */
+func ValidateUser() (quota int, msg string, err error) {
+	// Grab this user's public IP
+	ip, err := getExternalIP()
+	if err != nil {
+		return quota, "Failed to retrieve ip", err
+	}
+
+	// Use ip to register/check registration
+	RegisterOutput, err := registerIp(ip)
+	if err != nil {
+		return quota, "Failed to register user", err
+	}
+
+	// User returned jwt to check validation
+	VerifyOutput, err := verifyJwt(RegisterOutput.Output.Jwt)
+	if err != nil {
+		return quota, "Failed to verify user credentials", err
+	}
+
+	// Exit if invalid jwt given
+	if !VerifyOutput.Output.Valid {
+		return quota, "Failed to verify user credentials", errors.New("failed to validate user")
+	}
+
+	quota = VerifyOutput.Output.Quota
+	return quota, "", nil
 }

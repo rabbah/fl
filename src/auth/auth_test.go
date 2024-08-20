@@ -8,7 +8,7 @@ func TestRegisterIp(t *testing.T) {
 	ip := "1.1.1.1"
 	expected := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjEuMS4xLjMiLCJmbGlkIjoiZGZjM2YzZjMtYjMyNy00NGZiLWJlYWMtZTY4ZTY0MmIyZThhIiwidmVyc2lvbiI6InYxIn0=.P5JWgTAJU91QPfLPGItu715fKOc1ImwWxJWL+FLb24g="
 
-	result, err := RegisterIp(ip)
+	result, err := registerIp(ip)
 	jwt := result.Output.Jwt
 	if jwt != expected || err != nil {
 		t.Fatalf(`RegisterIp(%s) = ("%s",%v). Expected ('%s',%v)`, ip, result, err, expected, nil)
@@ -16,8 +16,8 @@ func TestRegisterIp(t *testing.T) {
 }
 
 func TestRegisterIpFail(t *testing.T) {
-	ip := "abcd"
-	_, err := RegisterIp(ip)
+	ip := "abc"
+	_, err := registerIp(ip)
 
 	if err == nil {
 		t.Fatalf(`RegisterIp(%s) = should raise an error`, ip)
@@ -31,7 +31,7 @@ func TestVerifyJwt(t *testing.T) {
 	expectedVersion := "v1"
 	expectedQuota := 40
 
-	result, err := VerifyJwt(jwt)
+	result, err := verifyJwt(jwt)
 	valid := result.Output.Valid
 	flid := result.Output.Flid.Flid
 	version := result.Output.Flid.Version
@@ -45,7 +45,7 @@ func TestVerifyJwtFail(t *testing.T) {
 	jwt := "false jwt"
 	expectedResult := false
 
-	result, err := VerifyJwt(jwt)
+	result, err := verifyJwt(jwt)
 	valid := result.Output.Valid
 	if valid != expectedResult || err != nil {
 		t.Fatalf(`VerifyJwt(%s) = (%v, %v). Error and valid == false`, jwt, result, nil)
@@ -56,7 +56,7 @@ func TestGetIp(t *testing.T) {
 	t.Skip("This requires knowing your ext ip. Only execute test if ExternalIP is suspected to fail.")
 	expected := ""
 
-	ip, err := GetExternalIP()
+	ip, err := getExternalIP()
 
 	if ip != expected || err != nil {
 		t.Fatalf(`ExternalIP) = %s, %v. Expected %s, %v`, ip, err, expected, nil)
