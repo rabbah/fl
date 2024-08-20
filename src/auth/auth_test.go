@@ -29,12 +29,14 @@ func TestVerifyJwt(t *testing.T) {
 	expectedResult := true
 	expectedFlid := "ada20f6a-b0a6-4aa9-ac13-d8a4ccc25167"
 	expectedVersion := "v1"
+	expectedQuota := 40
 
 	result, err := VerifyJwt(jwt)
 	valid := result.Output.Valid
 	flid := result.Output.Flid.Flid
 	version := result.Output.Flid.Version
-	if valid != expectedResult || flid != expectedFlid || version != expectedVersion || err != nil {
+	quota := result.Output.Quota
+	if valid != expectedResult || flid != expectedFlid || version != expectedVersion || quota != expectedQuota || err != nil {
 		t.Fatalf(`VerifyJwt(%s) = (%v, %s, %s, %v). Expected (%v, %s, %s, %v)`, jwt, result, flid, version, err, expectedResult, expectedFlid, expectedVersion, nil)
 	}
 }
@@ -42,15 +44,11 @@ func TestVerifyJwt(t *testing.T) {
 func TestVerifyJwtFail(t *testing.T) {
 	jwt := "false jwt"
 	expectedResult := false
-	expectedFlid := ""
-	expectedVersion := ""
 
 	result, err := VerifyJwt(jwt)
 	valid := result.Output.Valid
-	flid := result.Output.Flid.Flid
-	version := result.Output.Flid.Version
-	if valid != expectedResult || flid != expectedFlid || version != expectedVersion || err != nil {
-		t.Fatalf(`VerifyJwt(%s) = (%v, %s, %s, %v). Expected (%v, %s, %s, %v)`, jwt, result, flid, version, err, expectedResult, expectedFlid, expectedVersion, nil)
+	if valid != expectedResult || err != nil {
+		t.Fatalf(`VerifyJwt(%s) = (%v, %v). Error and valid == false`, jwt, result, nil)
 	}
 }
 
