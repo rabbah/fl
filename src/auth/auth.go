@@ -131,54 +131,46 @@ func GetExternalIP() (string, error) {
 	return string(ip), nil
 }
 
-func RegisterIp(ip string) (result string, err error) {
+func RegisterIp(ip string) (output RegisterOutput, err error) {
 	input := RegisterInput{
 		Input: struct {
 			Ip string `json:"ip"`
 		}{Ip: ip},
 	}
-	output := RegisterOutput{}
 	req := Request{input}
 
 	res, err := req.send(registerUrl)
 	if err != nil {
-		return "", err
+		return output, err
 	}
 
 	output, err = output.parse(res)
 	if err != nil {
-		return "", err
+		return output, err
 	}
 
 	if output.Output.Error != "" {
-		return "", errors.New(output.Output.Error)
+		return output, errors.New(output.Output.Error)
 	}
 
-	result = output.Output.Jwt
-
-	return result, nil
+	return output, nil
 }
 
-func VerifyJwt(jwt string) (result bool, flid string, version string, err error) {
+func VerifyJwt(jwt string) (output VerifyOutput, err error) {
 	input := VerifyInput{
 		jwt,
 	}
-	output := VerifyOutput{}
 	req := Request{input}
 
 	res, err := req.send(verifyUrl)
 	if err != nil {
-		return false, "", "", err
+		return output, err
 	}
 
 	output, err = output.parse(res)
 	if err != nil {
-		return false, "", "", err
+		return output, err
 	}
 
-	result = output.Output.Valid
-	flid = output.Output.Flid.Flid
-	version = output.Output.Flid.Version
-
-	return result, flid, version, nil
+	return output, nil
 }
