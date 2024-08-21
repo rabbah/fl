@@ -39,9 +39,16 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
 	// Validate executing user
-	_, msg, err := auth.ValidateUser()
+	quota, msg, err := auth.ValidateUser()
 	if err != nil {
 		fmt.Printf("%s: %v\n", msg, err)
+		os.Exit(1)
+	}
+
+	// Check user quota
+	err = auth.CheckQuota(quota)
+	if err != nil {
+		fmt.Printf("Error checking quota from user: %v\n", err)
 		os.Exit(1)
 	}
 

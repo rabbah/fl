@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -12,6 +13,7 @@ const (
 	registerUrl = "https://add9d90f-2d32-483d-835f-3dd2cb814764.mock.pstmn.io/register"
 	verifyUrl   = "https://add9d90f-2d32-483d-835f-3dd2cb814764.mock.pstmn.io/verify"
 	extIpUrl    = "https://api.ipify.org"
+	stripeUrl   = "Not yet implemented"
 )
 
 func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, err error) {
@@ -205,4 +207,22 @@ func ValidateUser() (quota int, msg string, err error) {
 
 	quota = VerifyOutput.Output.Quota
 	return quota, "", nil
+}
+
+/**
+ * Check returned quota to see if we should send a payment link.
+ * Do nothing if quota limit not reached.
+ * Otherwise, paste in terminal a link to pay.
+ * NOTE: does not produce error if limit reached - simply
+ *
+ * currently, err is just a placeholder for when the stripe webhook is implemented.
+ */
+func CheckQuota(quota int) (err error) {
+	// statement to check if quota is at satisfactory level
+	if quota <= 0 {
+		fmt.Printf("You have exceeded the quota. Please register for payments here: %s\n\n", stripeUrl)
+		return err
+	}
+
+	return err
 }
