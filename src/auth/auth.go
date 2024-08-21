@@ -85,14 +85,19 @@ func (RegisterOutput) parse(res *http.Response) (RegisterOutput, error) {
  * Verify JWT request/response structures/functions
  */
 type VerifyInput struct {
-	Input string `json:"Input"`
+	Input struct {
+		Jwt      string `json:"jwt"`
+		Prompt   string `json:"prompt"`
+		Language string `json:"language"`
+	} `json:"Input"`
 }
 
 type VerifyOutput struct {
 	Output struct {
-		Valid bool `json:"valid"`
-		Quota int  `json:"quota"`
-		Flid  struct {
+		Valid      bool   `json:"valid"`
+		AboveQuota bool   `json:"abovequota"`
+		Cmd        string `json:"cmd"`
+		Flid       struct {
 			Flid    string `json:"flid"`
 			Version string `json:"version"`
 		} `json:"flid"`
@@ -158,9 +163,17 @@ func registerIp(ip string) (output RegisterOutput, err error) {
 	return output, nil
 }
 
-func verifyJwt(jwt string) (output VerifyOutput, err error) {
+func verifyAndGenCmd(prompt string, language string, jwt string) (output VerifyOutput, err error) {
 	input := VerifyInput{
-		jwt,
+		Input: struct {
+			Jwt      string `json:"jwt"`
+			Prompt   string `json:"prompt"`
+			Language string `json:"language"`
+		}{
+			Jwt:      jwt,
+			Prompt:   prompt,
+			Language: language,
+		},
 	}
 	req := Request{input}
 
@@ -181,48 +194,37 @@ func verifyJwt(jwt string) (output VerifyOutput, err error) {
  * Validate the user by pub IP. Exit if any error encountered.
  * Assume success iff err = nil.
  */
-func ValidateUser() (quota int, msg string, err error) {
+func ValidateUserGetCmd(prompt string, language string) (cmd string, msg string, err error) {
 	// Grab this user's public IP
 	ip, err := getExternalIP()
 	if err != nil {
-		return quota, "Failed to retrieve ip", err
+		return cmd, "Failed to retrieve ip", err
 	}
 
 	// Use ip to register/check registration
 	RegisterOutput, err := registerIp(ip)
 	if err != nil {
-		return quota, "Failed to register user", err
+		return cmd, "Failed to register user", err
 	}
 
 	// User returned jwt to check validation
-	VerifyOutput, err := verifyJwt(RegisterOutput.Output.Jwt)
+	jwt := RegisterOutput.Output.Jwt
+	VerifyOutput, err := verifyAndGenCmd(prompt, language, jwt)
 	if err != nil {
-		return quota, "Failed to verify user credentials", err
+		return cmd, "Failed to verify user credentials", err
 	}
 
 	// Exit if invalid jwt given
 	if !VerifyOutput.Output.Valid {
-		return quota, "Failed to verify user credentials", errors.New("failed to validate user")
+		return cmd, "Failed to verify user credentials", errors.New("failed to validate user")
 	}
 
-	quota = VerifyOutput.Output.Quota
-	return quota, "", nil
-}
-
-/**
- * Check returned quota to see if we should send a payment link.
- * Do nothing if quota limit not reached.
- * Otherwise, paste in terminal a link to pay.
- * NOTE: does not produce error if limit reached - simply
- *
- * currently, err is just a placeholder for when the stripe webhook is implemented.
- */
-func CheckQuota(quota int) (err error) {
-	// statement to check if quota is at satisfactory level
-	if quota <= 0 {
+	// Logic to check the quota
+	// by specification, do not cancel upon meeting quota
+	if VerifyOutput.Output.AboveQuota {
 		fmt.Printf("You have exceeded the quota. Please register for payments here: %s\n\n", stripeUrl)
-		return err
 	}
 
-	return err
+	cmd = VerifyOutput.Output.Cmd
+	return cmd, "", nil
 }

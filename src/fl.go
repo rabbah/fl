@@ -39,24 +39,10 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
 	// Validate executing user
-	quota, msg, err := auth.ValidateUser()
+	helpers.Print(Flags.Verbose, "Authorizing and sending prompt...")
+	result, msg, err := auth.ValidateUserGetCmd(Flags.Prompt, Flags.Language)
 	if err != nil {
 		fmt.Printf("%s: %v\n", msg, err)
-		os.Exit(1)
-	}
-
-	// Check user quota
-	err = auth.CheckQuota(quota)
-	if err != nil {
-		fmt.Printf("Error checking quota from user: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Make the API call
-	helpers.Print(Flags.Verbose, "Sending prompt...")
-	result, err := web.GenerateCommand(Flags.Prompt, Flags.Language)
-	if err != nil {
-		fmt.Printf("Failed to call Flows API - %s: %v\n", result, err)
 		os.Exit(1)
 	}
 

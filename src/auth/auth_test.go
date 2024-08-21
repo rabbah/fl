@@ -26,16 +26,19 @@ func TestRegisterIpFail(t *testing.T) {
 
 func TestVerifyJwt(t *testing.T) {
 	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjEuMS4xLjMiLCJmbGlkIjoiZGZjM2YzZjMtYjMyNy00NGZiLWJlYWMtZTY4ZTY0MmIyZThhIiwidmVyc2lvbiI6InYxIn0=.P5JWgTAJU91QPfLPGItu715fKOc1ImwWxJWL+FLb24g="
+	prompt := "list files"
+	language := "unix/bash"
+
 	expectedResult := true
 	expectedFlid := "ada20f6a-b0a6-4aa9-ac13-d8a4ccc25167"
 	expectedVersion := "v1"
-	expectedQuota := 40
+	expectedQuota := false
 
-	result, err := verifyJwt(jwt)
+	result, err := verifyAndGenCmd(prompt, language, jwt)
 	valid := result.Output.Valid
 	flid := result.Output.Flid.Flid
 	version := result.Output.Flid.Version
-	quota := result.Output.Quota
+	quota := result.Output.AboveQuota
 	if valid != expectedResult || flid != expectedFlid || version != expectedVersion || quota != expectedQuota || err != nil {
 		t.Fatalf(`VerifyJwt(%s) = (%v, %s, %s, %v). Expected (%v, %s, %s, %v)`, jwt, result, flid, version, err, expectedResult, expectedFlid, expectedVersion, nil)
 	}
@@ -45,7 +48,7 @@ func TestVerifyJwtFail(t *testing.T) {
 	jwt := "false jwt"
 	expectedResult := false
 
-	result, err := verifyJwt(jwt)
+	result, err := verifyAndGenCmd("", "", jwt)
 	valid := result.Output.Valid
 	if valid != expectedResult || err != nil {
 		t.Fatalf(`VerifyJwt(%s) = (%v, %v). Error and valid == false`, jwt, result, nil)
