@@ -25,12 +25,14 @@ var (
 type Config struct {
 	Autoexec bool
 	Language string
+	FLID     string
 }
 
 func NewConf() Config {
 	return Config{
 		Autoexec: false,
-		Language: "Unix/Bash",
+		Language: "unix/bash",
+		FLID:     "",
 	}
 }
 
