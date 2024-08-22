@@ -40,7 +40,7 @@ func noTui(Flags helpers.FlagStruct, Config io.Config) {
 
 	// Validate executing user
 	helpers.Print(Flags.Verbose, "Authorizing and sending prompt...")
-	result, msg, err := auth.ValidateUserGetCmd(Flags.Prompt, Flags.Language)
+	result, msg, err := auth.ValidateUserGetCmd(Flags.Prompt, Flags.Language, Config)
 	if err != nil {
 		fmt.Printf("%s: %v\n", msg, err)
 		os.Exit(1)

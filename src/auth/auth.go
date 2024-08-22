@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fl/io"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -194,7 +194,7 @@ func verifyAndGenCmd(prompt string, language string, jwt string) (output VerifyO
  * Validate the user by pub IP. Exit if any error encountered.
  * Assume success iff err = nil.
  */
-func ValidateUserGetCmd(prompt string, language string) (cmd string, msg string, err error) {
+func ValidateUserGetCmd(prompt string, language string, Config io.Config) (cmd string, msg string, err error) {
 	// Grab this user's public IP
 	ip, err := getExternalIP()
 	if err != nil {
@@ -217,6 +217,12 @@ func ValidateUserGetCmd(prompt string, language string) (cmd string, msg string,
 	// Exit if invalid jwt given
 	if !VerifyOutput.Output.Valid {
 		return cmd, "Failed to verify user credentials", errors.New("failed to validate user")
+	}
+
+	// Save FLID to config if not found
+	if Config.FLID == "" {
+		Config.FLID = VerifyOutput.Output.Flid.Flid
+		Config.SaveConf()
 	}
 
 	// Logic to check the quota

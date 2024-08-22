@@ -1,6 +1,7 @@
 package io
 
 import (
+	"io"
 	"os"
 )
 
@@ -12,6 +13,11 @@ const (
 func Output(outfile string, data string) (err error) {
 	err = output(outfile, []byte(data))
 	return err
+}
+
+// wrapper for Readall
+func ReadAll(r io.Reader) ([]byte, error) {
+	return io.ReadAll(r)
 }
 
 // output passed byte data (private)
