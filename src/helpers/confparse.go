@@ -27,6 +27,12 @@ func confHandlerLanguage(Config *io.Config, arg string) {
 	Config.Language = strings.ToLower(value)
 }
 
+func confHandlerFlid(Config *io.Config, arg string) {
+	if arg == "reset" {
+		Config.FLID = ""
+	}
+}
+
 /**********************
  * ConfParse
  *********************/
@@ -34,6 +40,7 @@ func confHandlerLanguage(Config *io.Config, arg string) {
 var (
 	regex_autoexecute = regexp.MustCompile("--autoexecute=")
 	regex_language    = regexp.MustCompile("--language=")
+	regex_flid        = regexp.MustCompile("flid")
 )
 
 // check if this is a config command - follow format 'fl config <CONFIGCMD>'
@@ -43,6 +50,10 @@ func ConfParse(args []string, Config *io.Config) (confCmd bool, err error) {
 			confHandlerAutoexec(Config, args[2])
 		} else if regex_language.MatchString(args[2]) {
 			confHandlerLanguage(Config, args[2])
+		} else if regex_flid.MatchString(args[2]) {
+			if len(args) > 2 {
+				confHandlerFlid(Config, args[3])
+			}
 		} else {
 			return true, errors.New("config param not found")
 		}
