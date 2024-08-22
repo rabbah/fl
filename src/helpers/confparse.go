@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"fl/auth"
 	"fl/io"
 	"regexp"
 	"strings"
@@ -28,8 +29,11 @@ func confHandlerLanguage(Config *io.Config, arg string) {
 }
 
 func confHandlerFlid(Config *io.Config, arg string) {
-	if arg == "reset" {
+	switch arg {
+	case "reset":
 		Config.FLID = ""
+	case "restore":
+		auth.RestoreFLID()
 	}
 }
 

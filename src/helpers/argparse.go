@@ -63,6 +63,7 @@ Usage: fl [-hnvt] [-o filename] [-l language] prompt...
 Config: fl conf <config param>
 
  flid reset             delete your locally saved flid
+ flid restore           restore your local flid
  --autoexecute=BOOL     enable autoexecution
  --language=STRING      change the DEFAULT language/environment to generate a command for
 

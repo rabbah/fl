@@ -124,7 +124,7 @@ func (VerifyOutput) parse(res *http.Response) (VerifyOutput, error) {
 }
 
 /**
- * Public exposed functions
+ * Private helpers functions
  */
 func getExternalIP() (string, error) {
 	resp, err := http.Get(extIpUrl)
@@ -288,4 +288,12 @@ func ValidateUserGetCmd(prompt string, language string, Config io.Config) (cmd s
 
 	cmd = VerifyOutput.Output.Cmd
 	return cmd, "", nil
+}
+
+/**
+ * Restore FLID by calling external webhook
+ */
+func RestoreFLID() (err error) {
+	fmt.Println("RestoreFLID() Not Yet Implemented.")
+	return err
 }
