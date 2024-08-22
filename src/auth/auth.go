@@ -87,6 +87,7 @@ func (RegisterOutput) parse(res *http.Response) (RegisterOutput, error) {
 type VerifyInput struct {
 	Input struct {
 		Jwt      string `json:"jwt"`
+		Flid     string `json:"flid"`
 		Prompt   string `json:"prompt"`
 		Language string `json:"language"`
 	} `json:"Input"`
@@ -167,10 +168,41 @@ func verifyAndGenCmd(prompt string, language string, jwt string) (output VerifyO
 	input := VerifyInput{
 		Input: struct {
 			Jwt      string `json:"jwt"`
+			Flid     string `json:"flid"`
 			Prompt   string `json:"prompt"`
 			Language string `json:"language"`
 		}{
 			Jwt:      jwt,
+			Flid:     "",
+			Prompt:   prompt,
+			Language: language,
+		},
+	}
+	req := Request{input}
+
+	res, err := req.send(verifyUrl)
+	if err != nil {
+		return output, err
+	}
+
+	output, err = output.parse(res)
+	if err != nil {
+		return output, err
+	}
+
+	return output, nil
+}
+
+func genCmdWithFlid(prompt string, language string, flid string) (output VerifyOutput, err error) {
+	input := VerifyInput{
+		Input: struct {
+			Jwt      string `json:"jwt"`
+			Flid     string `json:"flid"`
+			Prompt   string `json:"prompt"`
+			Language string `json:"language"`
+		}{
+			Jwt:      "",
+			Flid:     flid,
 			Prompt:   prompt,
 			Language: language,
 		},
@@ -191,38 +223,61 @@ func verifyAndGenCmd(prompt string, language string, jwt string) (output VerifyO
 }
 
 /**
- * Validate the user by pub IP. Exit if any error encountered.
- * Assume success iff err = nil.
+ * flid not found in conf, do an ip lookup and register ip.
+ * return verifyoutput
  */
-func ValidateUserGetCmd(prompt string, language string, Config io.Config) (cmd string, msg string, err error) {
+func flidNotFound(prompt string, language string) (VerifyOutput VerifyOutput, msg string, err error) {
 	// Grab this user's public IP
 	ip, err := getExternalIP()
 	if err != nil {
-		return cmd, "Failed to retrieve ip", err
+		return VerifyOutput, "Failed to retrieve ip", err
 	}
 
 	// Use ip to register/check registration
 	RegisterOutput, err := registerIp(ip)
 	if err != nil {
-		return cmd, "Failed to register user", err
+		return VerifyOutput, "Failed to register user", err
 	}
 
 	// User returned jwt to check validation
 	jwt := RegisterOutput.Output.Jwt
-	VerifyOutput, err := verifyAndGenCmd(prompt, language, jwt)
+	VerifyOutput, err = verifyAndGenCmd(prompt, language, jwt)
 	if err != nil {
-		return cmd, "Failed to verify user credentials", err
+		return VerifyOutput, "Failed to verify user credentials", err
 	}
 
 	// Exit if invalid jwt given
 	if !VerifyOutput.Output.Valid {
-		return cmd, "Failed to verify user credentials", errors.New("failed to validate user")
+		return VerifyOutput, "Failed to verify user credentials", errors.New("failed to validate user")
 	}
 
-	// Save FLID to config if not found
+	return VerifyOutput, "", nil
+}
+
+/**
+ * Check for FLID. if FLID not found, get public IP and register it into a flid. Also gen command.
+ * Otherwise, use flid and call backend to gen command.
+ * Assume success iff err = nil.
+ */
+func ValidateUserGetCmd(prompt string, language string, Config io.Config) (cmd string, msg string, err error) {
+	var VerifyOutput VerifyOutput
+
+	// no flid found
 	if Config.FLID == "" {
+		// get new flid and also send the cmd information
+		VerifyOutput, msg, err = flidNotFound(prompt, language)
+		if err != nil {
+			return "", msg, err
+		}
+		// Save FLID to config if not found
 		Config.FLID = VerifyOutput.Output.Flid.Flid
 		Config.SaveConf()
+	} else {
+		// use flid to generate command
+		VerifyOutput, err = genCmdWithFlid(prompt, language, Config.FLID)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	// Logic to check the quota
