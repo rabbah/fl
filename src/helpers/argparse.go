@@ -16,9 +16,9 @@ import (
 
 // global flag structure
 type FlagStruct struct {
-	Verbose, Help, PromptExec, Tui, Output, Explain bool
-	Outfile, Prompt, Language                       string
-	Len                                             int
+	Verbose, Help, PromptExec, Output, Explain bool
+	Outfile, Prompt, Language                  string
+	Len                                        int
 }
 
 func ConstructFlags(Config io.Config) (Flags FlagStruct) {
@@ -26,7 +26,6 @@ func ConstructFlags(Config io.Config) (Flags FlagStruct) {
 		Verbose:    false,
 		Help:       false,
 		PromptExec: false,
-		Tui:        false,
 		Output:     false,
 		Explain:    false,
 		Outfile:    "",
@@ -54,7 +53,6 @@ Usage: fl [-hnvt] [-o filename] [-l language] prompt...
  -h,--help              show command usage
  -p                     prompt for running generated command
  -v,--verbose           display updates of the command progress
- -t                     enter the graphical interface (TUI)
  -e                     for extra verification, ask AI what the generated command does
  -o outfile             output generated command to the passed textfile
  -l language            target language to generate code for, default is bash/unix commands
@@ -94,11 +92,6 @@ func flagsHandlerVerbose(Flags *FlagStruct, startPromptIndex *int) {
 func flagsHandlerPrompt(Flags *FlagStruct, startPromptIndex *int) {
 	*startPromptIndex++
 	Flags.PromptExec = true
-}
-
-func flagsHandlerTui(Flags *FlagStruct, startPromptIndex *int) {
-	*startPromptIndex++
-	Flags.Tui = true
 }
 
 func flagsHandlerExplain(Flags *FlagStruct, startPromptIndex *int) {
@@ -145,8 +138,6 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 			flagsHandlerVerbose(Flags, &startPromptIndex)
 		case "-p":
 			flagsHandlerPrompt(Flags, &startPromptIndex)
-		case "-t":
-			flagsHandlerTui(Flags, &startPromptIndex)
 		case "-e":
 			flagsHandlerExplain(Flags, &startPromptIndex)
 		case "-o":
@@ -167,16 +158,10 @@ func ArgParse(args []string, Flags *FlagStruct) (err error) {
 		return errors.New("outfile cannot be empty")
 	}
 
-	// fl by itself should activate TUI
+	// fl by itself (no prompt) is an error
 	Flags.Prompt = strings.Join(args[startPromptIndex:], " ")
 	if Flags.Prompt == "" {
-		// check no flags or only -t => enter TUI. err otherwise.
-		if startPromptIndex == 1 || Flags.Tui {
-			Flags.Tui = true // set true despite current value
-			return nil
-		} else {
-			return errors.New("prompt cannot be empty")
-		}
+		return errors.New("prompt cannot be empty")
 	}
 
 	return nil

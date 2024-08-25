@@ -5,7 +5,6 @@ import (
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
-	"fl/ui"
 	"fl/web"
 	"fmt"
 	"os"
@@ -21,20 +20,7 @@ func init() {
 	}
 }
 
-/**********************
- * TUI-based logic
- *********************/
-
-func startTui(Flags helpers.FlagStruct, Config io.Config) {
-
-	err := ui.RunProgram(&Flags, &Config)
-	if err != nil {
-		fmt.Printf("Error running TUI: %v", err)
-		os.Exit(1)
-	}
-}
-
-func noTui(Flags helpers.FlagStruct, Config io.Config) {
+func runFL(Flags helpers.FlagStruct, Config io.Config) {
 
 	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
 
@@ -131,7 +117,7 @@ func main() {
 
 	// initialize flags struct
 	Flags := helpers.ConstructFlags(Config)
-	// parse arguments and recieve prompt
+	// parse arguments and receive prompt
 	err = helpers.ArgParse(os.Args, &Flags)
 
 	if err != nil {
@@ -147,11 +133,5 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Otherwise check for TUI flag
-	if Flags.Tui {
-		startTui(Flags, Config)
-	} else {
-		// execute in-line if TUI flag not set
-		noTui(Flags, Config)
-	}
+	runFL(Flags, Config)
 }

@@ -60,7 +60,7 @@ func reqFlows(apiUrl string, reqJSON []byte) (res *http.Response, msg string, er
 	res, err = http.Post(apiUrl, "application/json", bytes.NewBuffer(reqJSON))
 
 	if err != nil {
-		return nil, "Failed to send response", err
+		return nil, "Failed to send request", err
 	}
 
 	return res, "", err
