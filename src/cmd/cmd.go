@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type FlagConfig struct {
@@ -11,11 +12,10 @@ type FlagConfig struct {
 	Outfile, Langtool     string
 	Login                 bool
 	Prompt                string
+	FLID                  string
 }
 
-func ParseCommandLine(args []string) FlagConfig {
-	flags := FlagConfig{}
-
+func ParseCommandLine(args []string, flags *FlagConfig) {
 	rootCmd := &cobra.Command{
 		Use:   "fl <prompt>",
 		Short: "A command-line tool for generating command line scripts using AI",
@@ -47,5 +47,30 @@ func ParseCommandLine(args []string) FlagConfig {
 
 	rootCmd.SetArgs(args)
 	rootCmd.Execute()
-	return flags
+}
+
+func ReadConfig(filepath string, flags *FlagConfig) error {
+	viper.SetConfigFile(filepath)
+	viper.SetConfigType("json")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return err
+	}
+
+	flags.Run = viper.GetBool("run")
+	flags.Langtool = viper.GetString("langtool")
+	flags.FLID = viper.GetString("flid")
+	return nil
+}
+
+func WriteConfig(filepath string, flags FlagConfig) error {
+	viper.SetConfigFile(filepath)
+	viper.SetConfigType("json")
+
+	viper.Set("run", flags.Run)
+	viper.Set("langtool", flags.Langtool)
+	viper.Set("flid", flags.FLID)
+
+	return viper.WriteConfig()
 }
