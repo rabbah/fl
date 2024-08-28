@@ -1,50 +1,43 @@
 package main
 
 import (
+	"fl/api"
 	"fl/auth"
+	"fl/cmd"
 	"fl/exec"
 	"fl/helpers"
 	"fl/io"
+	"fl/utils"
 	"fl/web"
 	"fmt"
 	"os"
-
-	"golang.design/x/clipboard"
+	"path/filepath"
 )
 
-func init() {
-	err := clipboard.Init()
-	if err != nil {
-		fmt.Println("Failed to initialize clipboard.")
-		panic(err)
-	}
-}
-
-func runFL(Flags helpers.FlagStruct, Config io.Config) {
-
-	helpers.Print(Flags.Verbose, "Prompt extracted:", Flags.Prompt)
+func runFL(flags cmd.FlagConfig) {
+	helpers.Print(flags.Verbose, "Prompt extracted:", flags.Prompt)
 
 	// Validate executing user
-	helpers.Print(Flags.Verbose, "Authorizing and sending prompt...")
-	result, msg, err := auth.ValidateUserGetCmd(Flags.Prompt, Flags.Language, Config)
+	helpers.Print(flags.Verbose, "Authorizing and sending prompt...")
+	result, msg, err := auth.ValidateUserGetCmd(flags.Prompt, flags.Langtool, flags.FLID)
 	if err != nil {
 		fmt.Printf("%s: %v\n", msg, err)
 		os.Exit(1)
 	}
 
 	// Emit the result
-	helpers.Print(Flags.Verbose, "Output: \n")
+	helpers.Print(flags.Verbose, "Output: \n")
 	fmt.Println(result)
 	fmt.Println()
 
 	// copy to clipboard
-	clipboard.Write(clipboard.FmtText, []byte(result))
+	utils.Clip(result)
 
 	// check if explain flag, then call explain
-	if Flags.Explain {
-		helpers.Print(Flags.Verbose, "Sending command for explanation...")
+	if flags.Explain {
+		helpers.Print(flags.Verbose, "Sending command for explanation...")
 
-		explanation, err := web.ExplainCommand(result, Flags.Language)
+		explanation, err := web.ExplainCommand(result, flags.Langtool)
 		if err != nil {
 			fmt.Printf("Failed to call Flows API - %s: %v\n", explanation, err)
 			os.Exit(1)
@@ -55,13 +48,13 @@ func runFL(Flags helpers.FlagStruct, Config io.Config) {
 
 	// if not skipping prompt, ask user if they would like to execute
 	userExecute := false
-	if Flags.PromptExec {
+	if flags.PromptRun {
 		userExecute = exec.PromptExec()
 	}
 
 	// perform the command if autoexecute enabled or user prompted to exec
-	if (Config.Autoexec && !Flags.PromptExec) || userExecute {
-		helpers.Print(Flags.Verbose, "Executing the result...")
+	if (flags.AutoExecute && !flags.PromptRun) || userExecute {
+		helpers.Print(flags.Verbose, "Executing the result...")
 
 		Cmd := exec.Command(result)
 		out, err := Cmd.Exec()
@@ -74,8 +67,8 @@ func runFL(Flags helpers.FlagStruct, Config io.Config) {
 		fmt.Println(out)
 	}
 
-	if Flags.Output {
-		err := io.Output(Flags.Outfile, result)
+	if flags.Outfile != "" {
+		err := io.Output(flags.Outfile, result)
 
 		if err != nil {
 			fmt.Printf("Failed save output to file: %s\n", err)
@@ -84,54 +77,42 @@ func runFL(Flags helpers.FlagStruct, Config io.Config) {
 	}
 }
 
-/**********************
- * main
- *********************/
-
 func main() {
+	home, _ := os.UserHomeDir()
+	filepath := filepath.Join(home, ".flconf")
+	flags := cmd.FlagConfig{}
 
-	// get config data
-	Config, err := io.ReadConf()
+	err := cmd.ReadConfig(filepath, &flags)
 	if err != nil {
-		fmt.Printf("Config read error: %s\n", err)
-		helpers.Usage()
-		os.Exit(1)
+		panic(err)
 	}
 
-	// check if the entered command was a conf parse command
-	wasConfCmd, err := helpers.ConfParse(os.Args, &Config)
-	if err != nil {
-		fmt.Println(err)
-		helpers.Usage()
-		os.Exit(1)
+	cmd.ParseCommandLine(os.Args[1:], &flags)
+
+	if flags.Config {
+		cmd.WriteConfig(filepath, flags)
+		os.Exit(0)
 	}
-	if wasConfCmd {
-		// save conf and exit
-		err = Config.SaveConf()
+
+	if flags.Login {
+		os.Exit(0)
+	}
+
+	if flags.FLID == "" {
+		flid, err := api.RegisterUserByIP()
 		if err != nil {
-			fmt.Printf("Config write error: %s\n", err)
+			fmt.Printf("Failed to register you. You can try again or use 'fl login': %v\n", err)
 			os.Exit(1)
 		}
-		os.Exit(0)
+
+		flags.FLID = flid
+		newFlags := cmd.FlagConfig{}
+		err = cmd.ReadConfig(filepath, &newFlags)
+		if err != nil {
+			panic(err)
+		}
+		cmd.WriteConfig(filepath, newFlags)
 	}
 
-	// initialize flags struct
-	Flags := helpers.ConstructFlags(Config)
-	// parse arguments and receive prompt
-	err = helpers.ArgParse(os.Args, &Flags)
-
-	if err != nil {
-		fmt.Printf("Parse error: %s\n", err)
-		helpers.Usage()
-		os.Exit(1)
-	}
-
-	// exit if -h/--help flags found
-	if Flags.Help {
-		// handler for when --help or -h are provided
-		helpers.Usage()
-		os.Exit(0)
-	}
-
-	runFL(Flags, Config)
+	runFL(flags)
 }
