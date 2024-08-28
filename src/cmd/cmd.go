@@ -8,11 +8,13 @@ import (
 )
 
 type FlagConfig struct {
-	Verbose, Run, Explain bool
-	Outfile, Langtool     string
-	Login                 bool
-	Prompt                string
-	FLID                  string
+	Verbose, Explain       bool
+	PromptRun, AutoExecute bool
+	Outfile, Langtool      string
+	Login                  bool
+	Config                 bool
+	Prompt                 string
+	FLID                   string
 }
 
 func ParseCommandLine(args []string, flags *FlagConfig) {
@@ -34,16 +36,29 @@ func ParseCommandLine(args []string, flags *FlagConfig) {
 		},
 	}
 
+	configCmd := &cobra.Command{
+		Use:   "conf",
+		Short: "Configure settings",
+		Run: func(cmd *cobra.Command, args []string) {
+			flags.Config = true
+		},
+	}
+
 	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(configCmd)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Show command usage")
 	rootCmd.PersistentFlags().BoolVarP(&flags.Verbose, "verbose", "v", false, "Verbose output")
 
-	rootCmd.PersistentFlags().BoolVarP(&flags.Run, "run", "r", false, "Prompt to run generated commands")
-	rootCmd.PersistentFlags().BoolVarP(&flags.Explain, "explain", "e", false, "Include generated command explanation")
+	rootCmd.PersistentFlags().BoolVarP(&flags.PromptRun, "prompt", "p", false, "Prompt to run generated commands")
+	configCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", false, "Configure fl to always run the generated command without prompting")
+	rootCmd.PersistentFlags().BoolVarP(&flags.Explain, "explain", "e", false, "Explain the generated command")
 
 	rootCmd.PersistentFlags().StringVarP(&flags.Outfile, "outfile", "o", "", "Write generated command to file")
 	rootCmd.PersistentFlags().StringVarP(&flags.Langtool, "langtool", "l", "", "Generate command for specific shell or a tool")
+
+	configCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", false, "Configure fl to always run the generated command without prompting")
+	configCmd.PersistentFlags().StringVarP(&flags.Langtool, "langtool", "l", "", "Set default shell or a tool or use")
 
 	rootCmd.SetArgs(args)
 	rootCmd.Execute()
@@ -58,7 +73,7 @@ func ReadConfig(filepath string, flags *FlagConfig) error {
 		return err
 	}
 
-	flags.Run = viper.GetBool("run")
+	flags.AutoExecute = viper.GetBool("run")
 	flags.Langtool = viper.GetString("langtool")
 	flags.FLID = viper.GetString("flid")
 	return nil
@@ -68,7 +83,7 @@ func WriteConfig(filepath string, flags FlagConfig) error {
 	viper.SetConfigFile(filepath)
 	viper.SetConfigType("json")
 
-	viper.Set("run", flags.Run)
+	viper.Set("run", flags.AutoExecute)
 	viper.Set("langtool", flags.Langtool)
 	viper.Set("flid", flags.FLID)
 
