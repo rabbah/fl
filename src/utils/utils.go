@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -109,4 +110,15 @@ func GetExternalIP() (string, error) {
 	}
 
 	return string(ip), nil
+}
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == ""
+}
+
+// print passed prompt if verbose enabled
+func Log(verbose bool, msg string, rest ...interface{}) {
+	if verbose {
+		fmt.Printf(msg, rest...)
+	}
 }
