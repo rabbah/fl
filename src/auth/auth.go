@@ -259,22 +259,22 @@ func flidNotFound(prompt string, language string) (VerifyOutput VerifyOutput, ms
  * Otherwise, use flid and call backend to gen command.
  * Assume success iff err = nil.
  */
-func ValidateUserGetCmd(prompt string, language string, Config io.Config) (cmd string, msg string, err error) {
+func ValidateUserGetCmd(prompt string, language string, flid string) (cmd string, msg string, err error) {
 	var VerifyOutput VerifyOutput
 
 	// no flid found
-	if Config.FLID == "" {
+	if flid == "" {
 		// get new flid and also send the cmd information
 		VerifyOutput, msg, err = flidNotFound(prompt, language)
 		if err != nil {
 			return "", msg, err
 		}
 		// Save FLID to config if not found
-		Config.FLID = VerifyOutput.Output.Flid.Flid
-		Config.SaveConf()
+		//Config.FLID = VerifyOutput.Output.Flid.Flid
+		//Config.SaveConf()
 	} else {
 		// use flid to generate command
-		VerifyOutput, err = genCmdWithFlid(prompt, language, Config.FLID)
+		VerifyOutput, err = genCmdWithFlid(prompt, language, flid)
 		if err != nil {
 			return "", "", err
 		}
