@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	ClientID = "Ov23liak5XRTpeHgGDtx"
+)
+
 type GitHubAccessToken struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
