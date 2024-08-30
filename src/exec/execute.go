@@ -13,6 +13,7 @@ type Exec struct {
 
 func PromptExec() (userExec bool) {
 	var userInput string
+	fmt.Println()
 	fmt.Print("Would you like to execute the command? (y/n): ")
 	fmt.Scanln(&userInput)
 	userInput = strings.ToLower(userInput)

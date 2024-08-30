@@ -20,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	err = cmd.ParseCommandLine(os.Args[1:], &flags)
+	err = cmd.ParseCommandLine(os.Args[1:], filepath, &flags)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,7 @@ func main() {
 		}
 
 		flags.FLID = flid
-		cmd.WriteConfig(filepath, &flags)
+		cmd.WriteConfig(filepath, flags)
 	}
 
 	utils.Log(flags.Verbose, "Flags: %+v\n", flags)
@@ -63,7 +63,6 @@ Use 'fl subscribe' to subscribe and continue using 'fl'.`)
 	}
 
 	fmt.Println(res.Cmd)
-	fmt.Println()
 
 	if flags.Outfile != "" {
 		err = os.WriteFile(flags.Outfile, []byte(res.Cmd), 0755)

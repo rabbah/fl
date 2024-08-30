@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-const (
-	ClientID = "Ov23liak5XRTpeHgGDtx"
-)
-
 type GitHubAccessToken struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -74,7 +70,6 @@ func GetGitHubAccessToken(clientID string) (token GitHubAccessToken, err error) 
 
 		// Check if the access token is empty
 		if token.AccessToken != "" {
-			fmt.Println(token.AccessToken)
 			return
 		}
 
