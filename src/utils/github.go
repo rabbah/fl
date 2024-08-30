@@ -52,7 +52,9 @@ func GetGitHubAccessToken(clientID string) (token GitHubAccessToken, err error) 
 	}
 
 	// Poll until the device and user codes expire or the user has successfully authorized the app with a valid user code
+	fmt.Print("Polling for access token..")
 	for i := 0; i < 12; i++ {
+		fmt.Print(".")
 		// Make a POST request to the GitHub API to exchange the device code for an access token
 		accessTokenURL := "https://github.com/login/oauth/access_token?client_id=" + clientID + "&device_code=" + deviceCode + "&grant_type=urn:ietf:params:oauth:grant-type:device_code"
 		_, body, err = PostJSON(accessTokenURL, nil)
@@ -68,11 +70,17 @@ func GetGitHubAccessToken(clientID string) (token GitHubAccessToken, err error) 
 
 		// Check if the access token is empty
 		if token.AccessToken != "" {
+			fmt.Println(token.AccessToken)
 			return
 		}
 
 		// Polling interval
 		time.Sleep(time.Duration(interval) * time.Second)
+	}
+
+	if token.AccessToken == "" {
+		fmt.Println(" timed out!")
+		err = fmt.Errorf("timed out waiting for GitHub access token")
 	}
 
 	return
@@ -85,7 +93,6 @@ func ExchangeTokenForGitHubUserProfile(token string) (profile string, err error)
 
 func GetGitHubUserProfile(clientID string) (profile GitHubProfile, err error) {
 	token, err := GetGitHubAccessToken(clientID)
-
 	if err != nil {
 		return
 	}
