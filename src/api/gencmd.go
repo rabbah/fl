@@ -20,7 +20,7 @@ type apiGenerateCommandOutput struct {
 
 type GeneratedCommandResult struct {
 	Valid bool   `json:"valid"`
-	Quota int    `json:"quota"`
+	Quota bool   `json:"quota"`
 	Cmd   string `json:"cmd"`
 }
 
