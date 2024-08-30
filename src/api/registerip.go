@@ -40,7 +40,7 @@ func RegisterUserByIP() (flid string, err error) {
 	}
 
 	output := apiOutput{}
-	err = json.Unmarshal([]byte(response), &output)
+	err = json.Unmarshal(response, &output)
 	if err != nil {
 		return
 	}
@@ -63,7 +63,7 @@ func RegisterUserByGitHubProfile(profile utils.GitHubProfile) (flid string, err 
 	}
 
 	output := apiOutput{}
-	err = json.Unmarshal([]byte(response), &output)
+	err = json.Unmarshal(response, &output)
 	if err != nil {
 		return
 	}

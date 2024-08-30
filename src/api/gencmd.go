@@ -41,7 +41,7 @@ func GenerateCommand(prompt string, language string, flid string) (*GeneratedCom
 	}
 
 	res := apiGenerateCommandOutput{}
-	err = json.Unmarshal([]byte(response), &res)
+	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return nil, err
 	}

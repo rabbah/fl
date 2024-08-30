@@ -37,7 +37,7 @@ func LoginCommand(jwt string, token string) (string, error) {
 	}
 
 	res := apiLoginOutput{}
-	err = json.Unmarshal([]byte(response), &res)
+	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return "", err
 	}
