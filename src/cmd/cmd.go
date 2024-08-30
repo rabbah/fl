@@ -37,12 +37,17 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 		Run: func(cmd *cobra.Command, args []string) {
 			Subscribe(flags, filepath)
 		},
+		PostRun: func(cmd *cobra.Command, args []string) {
+			os.Exit(0)
+		},
 	}
 
 	configCmd := &cobra.Command{
 		Use:   "config",
 		Short: "Tool configuration",
-		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Help()
+		},
 	}
 
 	configGetSubCmd := &cobra.Command{
@@ -66,7 +71,8 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 			if all || langtool {
 				fmt.Println("langtool:", flags.LangtoolConf)
 			}
-
+		},
+		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
 		},
 	}
@@ -74,6 +80,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	configSetSubCmd := &cobra.Command{
 		Use:   "set",
 		Short: "Set setting(s)",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			flags.AutoExecuteConf, _ = cmd.Flags().GetBool("run")
 			flags.LangtoolConf, _ = cmd.Flags().GetString("langtool")
@@ -82,7 +89,8 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 			if err != nil {
 				panic(err)
 			}
-
+		},
+		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
 		},
 	}
@@ -91,7 +99,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd.PersistentFlags().BoolVarP(&flags.Verbose, "verbose", "v", false, "Verbose output")
 
 	rootCmd.PersistentFlags().BoolVarP(&flags.PromptRun, "prompt", "p", false, "Prompt to run generated commands")
-	rootCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", flags.AutoExecuteConf, "Configure fl to always run the generated command without prompting")
+	rootCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", flags.AutoExecuteConf, "Automatically execute generated commands")
 	//TODO
 	//rootCmd.PersistentFlags().BoolVarP(&flags.Explain, "explain", "e", false, "Explain the generated command")
 
@@ -104,14 +112,15 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd.AddCommand(configCmd)
 
 	configCmd.AddCommand(configGetSubCmd)
-	configGetSubCmd.PersistentFlags().BoolP("run", "r", false, "Get prompt to run setting")
+	configGetSubCmd.PersistentFlags().BoolP("run", "r", false, "Get auto-execute setting")
 	configGetSubCmd.PersistentFlags().BoolP("langtool", "l", false, "Get shell or tool setting")
 	configGetSubCmd.PersistentFlags().BoolP("flid", "f", false, "Get login info")
 
 	configCmd.AddCommand(configSetSubCmd)
-	configSetSubCmd.PersistentFlags().BoolP("run", "r", flags.AutoExecuteConf, "Set prompt to run setting")
+	configSetSubCmd.PersistentFlags().BoolP("run", "r", flags.AutoExecuteConf, "Set auto-execute")
 	configSetSubCmd.PersistentFlags().StringP("langtool", "l", flags.LangtoolConf, "Set default shell or a tool or use")
 
+	applyExitOnHelp(rootCmd, 0)
 	rootCmd.SetArgs(args)
 	return rootCmd.Execute()
 }
@@ -143,4 +152,12 @@ func WriteConfig(filepath string, flags FlagConfig) error {
 	viper.SetConfigFile(filepath)
 	viper.SetConfigType("json")
 	return viper.WriteConfig()
+}
+
+func applyExitOnHelp(c *cobra.Command, exitCode int) {
+	helpFunc := c.HelpFunc()
+	c.SetHelpFunc(func(c *cobra.Command, s []string) {
+		helpFunc(c, s)
+		os.Exit(exitCode)
+	})
 }
