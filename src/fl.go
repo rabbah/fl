@@ -25,15 +25,6 @@ func main() {
 		panic(err)
 	}
 
-	if flags.Config {
-		cmd.WriteConfig(filepath, &flags)
-		os.Exit(0)
-	}
-
-	if flags.Login {
-		os.Exit(0)
-	}
-
 	if flags.FLID == "" {
 		flid, err := api.RegisterUserByIP()
 		if err != nil {
@@ -57,7 +48,20 @@ func runFL(flags cmd.FlagConfig) {
 		os.Exit(1)
 	}
 
-	utils.Clip(res.Cmd)
+	if !res.Valid {
+		fmt.Println("Warning: Use 'fl login' to reset your access token.")
+	}
+
+	if res.Quota {
+		fmt.Println(`Warning: You have exhausted your allowed quota.
+Some features will be limited and your access may be cut off entirely.
+Use 'fl subscribe' to subscribe and continue using 'fl'.`)
+		fmt.Println()
+	} else {
+		// no quota, no clipboard
+		utils.Clip(res.Cmd)
+	}
+
 	fmt.Println(res.Cmd)
 	fmt.Println()
 

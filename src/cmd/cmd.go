@@ -23,7 +23,7 @@ type FlagConfig struct {
 	FLID            string
 }
 
-func ParseCommandLine(args []string, flags *FlagConfig) (*cobra.Command, error) {
+func ParseCommandLine(args []string, flags *FlagConfig) error {
 	rootCmd := &cobra.Command{
 		Use:   "fl <prompt>",
 		Short: "A command-line tool for generating command line scripts using AI",
@@ -156,7 +156,7 @@ func ParseCommandLine(args []string, flags *FlagConfig) (*cobra.Command, error) 
 	configSetSubCmd.PersistentFlags().StringP("langtool", "l", flags.LangtoolConf, "Set default shell or a tool or use")
 
 	rootCmd.SetArgs(args)
-	return rootCmd, rootCmd.Execute()
+	return rootCmd.Execute()
 }
 
 func configDefaultPath() string {
