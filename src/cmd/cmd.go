@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"fl/api"
-	"fl/utils"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -23,7 +20,7 @@ type FlagConfig struct {
 	FLID            string
 }
 
-func ParseCommandLine(args []string, flags *FlagConfig) error {
+func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd := &cobra.Command{
 		Use:   "fl <prompt>",
 		Short: "A command-line tool for generating command line scripts using AI",
@@ -34,36 +31,11 @@ func ParseCommandLine(args []string, flags *FlagConfig) error {
 		},
 	}
 
-	loginCmd := &cobra.Command{
-		Use:   "login",
-		Short: "Login to the fl service",
+	subscribeCmd := &cobra.Command{
+		Use:   "subscribe",
+		Short: "Manage your fl subscription",
 		Run: func(cmd *cobra.Command, args []string) {
-			token, err := utils.GetGitHubAccessToken(utils.ClientID)
-			if err != nil {
-				panic(err)
-			}
-
-			if token.AccessToken == "" {
-				err = fmt.Errorf("failed to get GitHub access token")
-				panic(err)
-			}
-
-			flags.FLID, err = api.LoginCommand(flags.FLID, token.AccessToken)
-			if err != nil {
-				panic(err)
-			}
-
-			filepath := configDefaultPath()
-			flags := &FlagConfig{}
-
-			err = ReadConfig(configDefaultPath(), flags)
-			if err != nil {
-				err = fmt.Errorf("cannot save login information: %v", err)
-				panic(err)
-			}
-
-			WriteConfig(filepath, flags)
-			os.Exit(0)
+			Subscribe(flags, filepath)
 		},
 	}
 
@@ -78,13 +50,6 @@ func ParseCommandLine(args []string, flags *FlagConfig) error {
 		Short: "Get setting(s)",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			flags := &FlagConfig{}
-
-			err := ReadConfig(configDefaultPath(), flags)
-			if err != nil {
-				panic(err)
-			}
-
 			run, _ := cmd.Flags().GetBool("run")
 			langtool, _ := cmd.Flags().GetBool("langtool")
 			flid, _ := cmd.Flags().GetBool("flid")
@@ -110,18 +75,10 @@ func ParseCommandLine(args []string, flags *FlagConfig) error {
 		Use:   "set",
 		Short: "Set setting(s)",
 		Run: func(cmd *cobra.Command, args []string) {
-			filepath := configDefaultPath()
-			flags := &FlagConfig{}
-
-			err := ReadConfig(filepath, flags)
-			if err != nil {
-				panic(err)
-			}
-
 			flags.AutoExecuteConf, _ = cmd.Flags().GetBool("run")
 			flags.LangtoolConf, _ = cmd.Flags().GetString("langtool")
 
-			err = WriteConfig(filepath, flags)
+			err := WriteConfig(filepath, *flags)
 			if err != nil {
 				panic(err)
 			}
@@ -142,7 +99,7 @@ func ParseCommandLine(args []string, flags *FlagConfig) error {
 	//TODO
 	//rootCmd.PersistentFlags().StringVarP(&flags.Langtool, "langtool", "l", flags.LangtoolConf, "Generate command for specific shell or a tool")
 
-	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(subscribeCmd)
 
 	rootCmd.AddCommand(configCmd)
 
@@ -157,12 +114,6 @@ func ParseCommandLine(args []string, flags *FlagConfig) error {
 
 	rootCmd.SetArgs(args)
 	return rootCmd.Execute()
-}
-
-func configDefaultPath() string {
-	home, _ := os.UserHomeDir()
-	filepath := filepath.Join(home, ".flconf")
-	return filepath
 }
 
 func ReadConfig(filepath string, flags *FlagConfig) error {
@@ -184,7 +135,7 @@ func ReadConfig(filepath string, flags *FlagConfig) error {
 	return nil
 }
 
-func WriteConfig(filepath string, flags *FlagConfig) error {
+func WriteConfig(filepath string, flags FlagConfig) error {
 	viper.Set("run", flags.AutoExecuteConf)
 	viper.Set("langtool", flags.LangtoolConf)
 	viper.Set("flid", flags.FLID)
