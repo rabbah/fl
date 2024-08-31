@@ -8,7 +8,6 @@ import (
 
 type apiLoginInput struct {
 	Input struct {
-		JWT   string `json:"jwt"`
 		Token string `json:"token"`
 	} `json:"Input"`
 }
@@ -21,9 +20,8 @@ type LoginResult struct {
 	FLID string `json:"flid"`
 }
 
-func LoginCommand(jwt string, token string) (string, error) {
+func LoginCommand(token string) (string, error) {
 	body := apiLoginInput{}
-	body.Input.JWT = jwt
 	body.Input.Token = token
 
 	statusCode, response, err := utils.PostJSON(LoginIP, body)
