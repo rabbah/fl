@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 
 	"golang.design/x/clipboard"
 )
@@ -10,7 +11,7 @@ func init() {
 	err := clipboard.Init()
 	if err != nil {
 		fmt.Println("Failed to initialize clipboard.")
-		panic(err)
+		os.Exit(128)
 	}
 }
 
