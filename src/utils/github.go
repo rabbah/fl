@@ -59,17 +59,20 @@ func GetGitHubAccessToken(clientID string) (token GitHubAccessToken, err error) 
 		accessTokenURL := "https://github.com/login/oauth/access_token?client_id=" + clientID + "&device_code=" + deviceCode + "&grant_type=urn:ietf:params:oauth:grant-type:device_code"
 		_, body, err = PostJSON(accessTokenURL, nil)
 		if err != nil {
+			fmt.Println()
 			return
 		}
 
 		// Parse the response body to extract the access token
 		err = json.Unmarshal(body, &token)
 		if err != nil {
+			fmt.Println()
 			return
 		}
 
 		// Check if the access token is empty
 		if token.AccessToken != "" {
+			fmt.Println()
 			return
 		}
 

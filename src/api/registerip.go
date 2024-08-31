@@ -5,20 +5,14 @@ import (
 	"fl/utils"
 )
 
-type apiInputRegisterIP struct {
+type apiRegisterInput struct {
 	Input struct {
 		IP string `json:"ip"`
 	} `json:"Input"`
 }
 
-type apiInputRegisterGitHub struct {
-	Input struct {
-		Profile utils.GitHubProfile `json:"profile"`
-	} `json:"Input"`
-}
-
-type apiOutput struct {
-	Output interface{} `json:"Output"`
+type apiRegisterOutput struct {
+	Output LoginResult `json:"Output"`
 }
 
 /**
@@ -31,7 +25,7 @@ func RegisterUserByIP() (flid string, err error) {
 		return
 	}
 
-	input := apiInputRegisterIP{}
+	input := apiRegisterInput{}
 	input.Input.IP = ip
 
 	_, response, err := utils.PostJSON(RegisterIP, input)
@@ -39,35 +33,12 @@ func RegisterUserByIP() (flid string, err error) {
 		return
 	}
 
-	output := apiOutput{}
+	output := apiRegisterOutput{}
 	err = json.Unmarshal(response, &output)
 	if err != nil {
 		return
 	}
 
-	flid = output.Output.(string)
-	return
-}
-
-/**
- * Register a user by their GitHub profile and return their FLID.
- * If the registration fails, an empty string or error is returned.
- */
-func RegisterUserByGitHubProfile(profile utils.GitHubProfile) (flid string, err error) {
-	input := apiInputRegisterGitHub{}
-	input.Input.Profile = profile
-
-	_, response, err := utils.PostJSON(RegisterGitHub, input)
-	if err != nil {
-		return
-	}
-
-	output := apiOutput{}
-	err = json.Unmarshal(response, &output)
-	if err != nil {
-		return
-	}
-
-	flid = output.Output.(string)
+	flid = output.Output.FLID
 	return
 }
