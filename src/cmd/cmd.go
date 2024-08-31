@@ -32,10 +32,14 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	}
 
 	subscribeCmd := &cobra.Command{
-		Use:   "subscribe",
-		Short: "Manage your fl subscription",
-		Run: func(cmd *cobra.Command, args []string) {
-			Subscribe(flags, filepath)
+		Use:           "subscribe",
+		Aliases:       []string{"sub"},
+		Short:         "Manage your fl subscription",
+		Args:          cobra.NoArgs,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return Subscribe(flags, filepath)
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -43,8 +47,10 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	}
 
 	configCmd := &cobra.Command{
-		Use:   "config",
-		Short: "Tool configuration",
+		Use:     "config",
+		Aliases: []string{"conf"},
+		Short:   "Tool configuration",
+		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
@@ -78,17 +84,15 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	}
 
 	configSetSubCmd := &cobra.Command{
-		Use:   "set",
-		Short: "Set setting(s)",
-		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:           "set",
+		Short:         "Set setting(s)",
+		Args:          cobra.NoArgs,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
 			flags.AutoExecuteConf, _ = cmd.Flags().GetBool("run")
 			flags.LangtoolConf, _ = cmd.Flags().GetString("langtool")
-
-			err := WriteConfig(filepath, *flags)
-			if err != nil {
-				panic(err)
-			}
+			return WriteConfig(filepath, *flags)
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -120,7 +124,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	configSetSubCmd.PersistentFlags().BoolP("run", "r", flags.AutoExecuteConf, "Set auto-execute")
 	configSetSubCmd.PersistentFlags().StringP("langtool", "l", flags.LangtoolConf, "Set default shell or a tool or use")
 
-	applyExitOnHelp(rootCmd, 0)
+	exitAfterHelp(rootCmd, 0)
 	rootCmd.SetArgs(args)
 	return rootCmd.Execute()
 }
@@ -154,7 +158,7 @@ func WriteConfig(filepath string, flags FlagConfig) error {
 	return viper.WriteConfig()
 }
 
-func applyExitOnHelp(c *cobra.Command, exitCode int) {
+func exitAfterHelp(c *cobra.Command, exitCode int) {
 	helpFunc := c.HelpFunc()
 	c.SetHelpFunc(func(c *cobra.Command, s []string) {
 		helpFunc(c, s)
