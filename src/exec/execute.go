@@ -17,11 +17,7 @@ func PromptExec() (userExec bool) {
 	fmt.Print("Would you like to execute the command? (y/n): ")
 	fmt.Scanln(&userInput)
 	userInput = strings.ToLower(userInput)
-	if userInput == "y" || userInput == "yes" {
-		return true
-	}
-
-	return false
+	return userInput == "y" || userInput == "yes"
 }
 
 func Command(result string) Exec {

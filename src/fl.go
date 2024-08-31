@@ -62,7 +62,7 @@ To get a new guest access code, use 'fl config --reset'.`)
 
 	fmt.Println(res.Cmd)
 
-	if !res.Quota {
+	if res.Quota {
 		fmt.Println(`
 Warning: You have exhausted your allowed quota.
 Features will be limited and your access may get cut off entirely.
