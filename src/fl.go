@@ -50,21 +50,28 @@ func runFL(flags cmd.FlagConfig) {
 		os.Exit(1)
 	}
 
+	// invalid token, no command
 	if !res.Valid {
-		fmt.Println("Warning: Use 'fl subscribe' to reset your access token.")
-	}
-
-	if res.Quota {
-		fmt.Println(`Warning: You have exhausted your allowed quota.
-Some features will be limited and your access may be cut off entirely.
-Use 'fl subscribe' to subscribe and continue using 'fl'.`)
-		fmt.Println()
-	} else {
-		// no quota, no clipboard
-		utils.Clip(res.Cmd)
+		fmt.Println(`
+Warning: Your access code is invalid.
+Use 'fl subscription start' to start a new subscription or
+'fl subscription restore' to restore an existing subscription.
+To get a new guest access code, use 'fl config --reset'.`)
+		return
 	}
 
 	fmt.Println(res.Cmd)
+
+	if !res.Quota {
+		fmt.Println(`
+Warning: You have exhausted your allowed quota.
+Features will be limited and your access may get cut off entirely.
+Use 'fl subscription start' to subscribe and continue using the tool.`)
+		return
+	}
+
+	// no quota -> no clipboard, prompt or auto-run
+	utils.Clip(res.Cmd)
 
 	if flags.Outfile != "" {
 		err = os.WriteFile(flags.Outfile, []byte(res.Cmd), 0755)
