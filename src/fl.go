@@ -17,12 +17,14 @@ func main() {
 
 	err := cmd.ReadConfig(filepath, &flags)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error reading saved configuration: %s\n", err)
+		os.Exit(1)
 	}
 
 	err = cmd.ParseCommandLine(os.Args[1:], filepath, &flags)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error handling command line arguments: %s\n", err)
+		os.Exit(1)
 	}
 
 	if flags.FLID == "" {
@@ -44,12 +46,12 @@ func main() {
 func runFL(flags cmd.FlagConfig) {
 	res, err := api.GenerateCommand(flags.Prompt, flags.Langtool, flags.FLID)
 	if err != nil {
-		fmt.Printf("Failed to generate a command: %v\n", err)
+		fmt.Printf("Error generating a command: %v\n", err)
 		os.Exit(1)
 	}
 
 	if !res.Valid {
-		fmt.Println("Warning: Use 'fl login' to reset your access token.")
+		fmt.Println("Warning: Use 'fl subscribe' to reset your access token.")
 	}
 
 	if res.Quota {
@@ -67,7 +69,7 @@ Use 'fl subscribe' to subscribe and continue using 'fl'.`)
 	if flags.Outfile != "" {
 		err = os.WriteFile(flags.Outfile, []byte(res.Cmd), 0755)
 		if err != nil {
-			fmt.Printf("Failed save output to file: %s\n", err)
+			fmt.Printf("Error saving output to file: %s\n", err)
 			os.Exit(1)
 		}
 	}
@@ -98,7 +100,8 @@ Use 'fl subscribe' to subscribe and continue using 'fl'.`)
 		out, err := Cmd.Exec()
 
 		if err != nil {
-			panic(err)
+			fmt.Printf("Error while executing command: %s\n", err)
+			os.Exit(1)
 		}
 
 		// Print the output
