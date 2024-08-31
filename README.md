@@ -46,19 +46,9 @@ You can run the tool either by installing `fl` in your path and using it directl
 
 Other flags are available and example usage will be provided by passing the `-h` or `--help` flags.
 
-### Flag Explanations
-
-```sh
-Usage: fl [-hynv] prompt...
- -h,--help              show command usage
- -y                     autoexecute the generated command
- -n                     do not prompt for or run generated command (takes priority over -y)
- -v,--verbose           display updates of the command progress
-```
+### Sample Calls
 
 Here are some sample calls for using `fl`:
-
-### Sample Calls
 
 1. **Description**: Remove a directory and all its contents.
    ```sh
@@ -101,8 +91,6 @@ Here are some sample calls for using `fl`:
 ## Postman Flows
 
 The entire backend for `fl` is implemented using [Postman Flows](https://learning.postman.com/docs/postman-flows/overview). Flows is a visual and low-code programming language for working with APIs and creating workflows with direct manipulation of APIs and data.
-
-- TODO: embeddable flow
 
 ## Notes and References
 
