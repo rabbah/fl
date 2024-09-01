@@ -30,8 +30,22 @@ func addSubscribeCommand(rootCmd *cobra.Command, filepath string, flags *FlagCon
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := login(flags, filepath, api.GitHubClientID)
-			return err
+			flid := ""
+			err := error(nil)
+
+			if guest, _ := cmd.Flags().GetBool("guest"); guest {
+				flid, err = loginGuest()
+			} else {
+				flid, err = loginGitHub(flags.Verbose, api.GitHubClientID)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			flags.FLID = flid
+			return writeConfig(filepath, *flags)
+
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -79,6 +93,8 @@ func addSubscribeCommand(rootCmd *cobra.Command, filepath string, flags *FlagCon
 			os.Exit(0)
 		},
 	}
+
+	subLoginCmd.PersistentFlags().BoolP("guest", "g", false, "Guest login")
 
 	subscribeCmd.AddCommand(subLoginCmd)
 	subscribeCmd.AddCommand(subStartCmd)

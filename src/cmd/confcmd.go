@@ -20,7 +20,7 @@ func addConfCommand(rootCmd *cobra.Command, filepath string, flags *FlagConfig) 
 				flags.FLID = ""
 				flags.AutoExecuteConf = false
 				flags.LangtoolConf = ""
-				return WriteConfig(filepath, *flags)
+				return writeConfig(filepath, *flags)
 			}
 			return cmd.Help()
 		},
@@ -65,7 +65,7 @@ func addConfCommand(rootCmd *cobra.Command, filepath string, flags *FlagConfig) 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags.AutoExecuteConf, _ = cmd.Flags().GetBool("run")
 			flags.LangtoolConf, _ = cmd.Flags().GetString("langtool")
-			return WriteConfig(filepath, *flags)
+			return writeConfig(filepath, *flags)
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -105,7 +105,7 @@ func ReadConfig(filepath string, flags *FlagConfig) error {
 	return nil
 }
 
-func WriteConfig(filepath string, flags FlagConfig) error {
+func writeConfig(filepath string, flags FlagConfig) error {
 	viper.Set("run", flags.AutoExecuteConf)
 	viper.Set("langtool", flags.LangtoolConf)
 	viper.Set("flid", flags.FLID)

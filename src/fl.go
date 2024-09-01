@@ -28,14 +28,8 @@ func main() {
 	}
 
 	if flags.FLID == "" {
-		flid, err := api.RegisterUserByIP()
-		if err != nil {
-			fmt.Printf("Failed to register you. You can try again or use 'fl login': %v\n", err)
-			os.Exit(1)
-		}
-
-		flags.FLID = flid
-		cmd.WriteConfig(filepath, flags)
+		cmd.LoginMessage(true)
+		os.Exit(0)
 	}
 
 	utils.Log(flags.Verbose, "Flags: %+v\n", flags)

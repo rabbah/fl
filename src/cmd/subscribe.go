@@ -7,37 +7,9 @@ import (
 	"time"
 )
 
-func login(flags *FlagConfig, filepath string, githubClientId string) (string, error) {
-	token, err := utils.GetGitHubAccessToken(githubClientId)
-	if err != nil {
-		return "", err
-	}
-
-	if token.AccessToken == "" {
-		err = fmt.Errorf("failed to get GitHub access token")
-		return "", err
-	}
-
-	if flags.Verbose {
-		fmt.Println("GitHub access token:", token.AccessToken)
-	}
-
-	flags.FLID, err = api.LoginCommand(token.AccessToken)
-	if err != nil {
-		return "", err
-	}
-
-	err = WriteConfig(filepath, *flags)
-	if err != nil {
-		return "", err
-	}
-
-	return flags.FLID, nil
-}
-
 func startSubscription(flags *FlagConfig) error {
 	if flags.FLID == "" {
-		return loginMessage()
+		return LoginMessage(false)
 	}
 
 	status, err := api.StartSubscription(flags.FLID)
@@ -60,7 +32,7 @@ func startSubscription(flags *FlagConfig) error {
 
 func cancelSubscription(flags *FlagConfig) error {
 	if flags.FLID == "" {
-		return loginMessage()
+		return LoginMessage(false)
 	}
 
 	status, err := api.CancelSubscription(flags.FLID)
@@ -74,7 +46,7 @@ func cancelSubscription(flags *FlagConfig) error {
 
 func statusSubscription(flags *FlagConfig) error {
 	if flags.FLID == "" {
-		return loginMessage()
+		return LoginMessage(false)
 	}
 
 	status, err := api.StatusOfSubscription(flags.FLID)
@@ -83,11 +55,6 @@ func statusSubscription(flags *FlagConfig) error {
 	}
 
 	printStatus(status)
-	return nil
-}
-
-func loginMessage() error {
-	fmt.Println("Please login in first. Use the following command: fl subscription login")
 	return nil
 }
 
