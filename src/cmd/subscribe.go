@@ -6,13 +6,8 @@ import (
 	"fmt"
 )
 
-const (
-	clientID = "Ov23liak5XRTpeHgGDtx"
-	stripURL = "https://buy.stripe.com/test_00g9D094f5n1bAI288"
-)
-
 func Subscribe(flags *FlagConfig, filepath string) error {
-	token, err := utils.GetGitHubAccessToken(clientID)
+	token, err := utils.GetGitHubAccessToken(api.GitHubClientID)
 	if err != nil {
 		return err
 	}
@@ -34,9 +29,19 @@ func Subscribe(flags *FlagConfig, filepath string) error {
 	err = WriteConfig(filepath, *flags)
 	if err != nil {
 		return err
-
 	}
-	url := stripURL + "?client_reference_id=" + flags.FLID
+
+	status, err := api.StartSubscription(flags.FLID)
+	if err != nil {
+		return err
+	}
+
+	if status.Subscription {
+		fmt.Println("You are already subscribed to the service.")
+		return nil
+	}
+
+	url := status.SubscriptionURL + "?client_reference_id=" + flags.FLID
 	err = utils.OpenURL(url)
 	if err != nil {
 		fmt.Println("Could not open the browser automatically, so please navigate to the following URL to subscribe:\n\t", url)
