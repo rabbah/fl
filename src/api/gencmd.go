@@ -30,7 +30,7 @@ func GenerateCommand(prompt string, language string, flid string) (*GeneratedCom
 	body.Input.Language = language
 	body.Input.FLID = flid
 
-	statusCode, response, err := utils.PostJSON(GenerateCmd, body)
+	statusCode, response, err := utils.PostJSON(GenerateCmdAPI, body)
 	if err != nil {
 		return nil, err
 	}

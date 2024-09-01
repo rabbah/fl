@@ -28,7 +28,7 @@ func RegisterUserByIP() (flid string, err error) {
 	input := apiRegisterInput{}
 	input.Input.IP = ip
 
-	_, response, err := utils.PostJSON(RegisterIP, input)
+	_, response, err := utils.PostJSON(RegisterGuestAPI, input)
 	if err != nil {
 		return
 	}
