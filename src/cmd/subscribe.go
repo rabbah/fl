@@ -60,7 +60,7 @@ func statusSubscription(flags *FlagConfig) error {
 
 func printStatus(status *api.SubscriptionResult) {
 	switch status.Status {
-	case "guest":
+	case "guest", "default":
 		fmt.Println("You do not have an active subscription.")
 
 	case "paid":
@@ -78,5 +78,6 @@ func printStatus(status *api.SubscriptionResult) {
 
 		fmt.Printf("Your subscription was canceled on %s.\n", canceledAt.Format("2006-01-02"))
 		fmt.Printf("Your may continue using the tool until the end of your billing cycle on %s.\n", cancelAt.Format("2006-01-02"))
+		fmt.Println("Please wait until the end of your billing cycle to start a new subscription.")
 	}
 }

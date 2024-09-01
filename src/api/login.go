@@ -24,7 +24,7 @@ func LoginCommand(token string) (string, error) {
 	body := apiLoginInput{}
 	body.Input.Token = token
 
-	statusCode, response, err := utils.PostJSON(LoginAPI, body)
+	statusCode, response, err := utils.PostJSON(LoginGitHubAPI, body)
 	if err != nil {
 		return "", err
 	}

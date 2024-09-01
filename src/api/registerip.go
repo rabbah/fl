@@ -19,7 +19,7 @@ type apiRegisterOutput struct {
  * Register a user by their IP and return their FLID.
  * If the registration fails, an empty string or error is returned.
  */
-func RegisterUserByIP() (flid string, err error) {
+func LoginGuestUserByIP() (flid string, err error) {
 	ip, err := utils.GetExternalIP()
 	if ip == "" || err != nil {
 		return
@@ -28,7 +28,7 @@ func RegisterUserByIP() (flid string, err error) {
 	input := apiRegisterInput{}
 	input.Input.IP = ip
 
-	_, response, err := utils.PostJSON(RegisterGuestAPI, input)
+	_, response, err := utils.PostJSON(LoginGuestAPI, input)
 	if err != nil {
 		return
 	}

@@ -46,11 +46,8 @@ func runFL(flags cmd.FlagConfig) {
 
 	// invalid token, no command
 	if !res.Valid {
-		fmt.Println(`
-Warning: Your access code is invalid.
-Use 'fl subscription start' to start a new subscription or
-'fl subscription restore' to restore an existing subscription.
-To get a new guest access code, use 'fl config --reset'.`)
+		fmt.Println("Your access code is invalid.")
+		cmd.LoginMessage(true)
 		return
 	}
 
