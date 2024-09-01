@@ -13,9 +13,10 @@ type apiSubscriptionInput struct {
 }
 
 type SubscriptionResult struct {
+	Status          string      `json:"status"` // one of 'guest', 'paid' or 'cancelling'
+	Created         json.Number `json:"created"`
 	Canceled_At     json.Number `json:"canceled_at"`
 	Cancel_At       json.Number `json:"cancel_at"`
-	Subscription    bool        `json:"subscription"`
 	SubscriptionURL string      `json:"subscriptionURL"`
 	Error           string      `json:"error"`
 }
