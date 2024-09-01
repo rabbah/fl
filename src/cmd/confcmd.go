@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func AddConfCommand(rootCmd *cobra.Command, filepath string, flags *FlagConfig) {
+func addConfCommand(rootCmd *cobra.Command, filepath string, flags *FlagConfig) {
 	configCmd := &cobra.Command{
 		Use:     "config",
 		Aliases: []string{"conf"},

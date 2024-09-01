@@ -43,10 +43,10 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	//TODO//rootCmd.PersistentFlags().StringVarP(&flags.Langtool, "langtool", "l", flags.LangtoolConf, "Generate command for specific shell or a tool")
 
 	// subscribe commands
-	AddSubscribeCommand(rootCmd, filepath, flags)
+	addSubscribeCommand(rootCmd, filepath, flags)
 
 	// config commands
-	AddConfCommand(rootCmd, filepath, flags)
+	addConfCommand(rootCmd, filepath, flags)
 
 	exitAfterHelp(rootCmd, 0)
 	rootCmd.SetArgs(args)

@@ -13,9 +13,11 @@ type apiSubscriptionInput struct {
 }
 
 type SubscriptionResult struct {
-	Subscription    bool   `json:"subscription"`
-	SubscriptionURL string `json:"subscriptionURL"`
-	Error           string `json:"error"`
+	Canceled_At     json.Number `json:"canceled_at"`
+	Cancel_At       json.Number `json:"cancel_at"`
+	Subscription    bool        `json:"subscription"`
+	SubscriptionURL string      `json:"subscriptionURL"`
+	Error           string      `json:"error"`
 }
 
 type apiSubscriptionOutput struct {
@@ -43,7 +45,63 @@ func StartSubscription(flid string) (*SubscriptionResult, error) {
 	}
 
 	if res.Output.Error != "" {
-		err = fmt.Errorf("failed to get GitHub access token")
+		err = fmt.Errorf(res.Output.Error)
+		return nil, err
+	}
+
+	return &res.Output, nil
+}
+
+func CancelSubscription(flid string) (*SubscriptionResult, error) {
+	body := apiSubscriptionInput{}
+	body.Input.FLID = flid
+
+	statusCode, response, err := utils.PostJSON(CancelSubscriptionAPI, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != 200 {
+		err = fmt.Errorf("failed to cancel subscription: %s", string(response))
+		return nil, err
+	}
+
+	res := apiSubscriptionOutput{}
+	err = json.Unmarshal(response, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Output.Error != "" {
+		err = fmt.Errorf(res.Output.Error)
+		return nil, err
+	}
+
+	return &res.Output, nil
+}
+
+func StatusOfSubscription(flid string) (*SubscriptionResult, error) {
+	body := apiSubscriptionInput{}
+	body.Input.FLID = flid
+
+	statusCode, response, err := utils.PostJSON(StatusOfSubscriptionAPI, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != 200 {
+		err = fmt.Errorf("failed to check status of subscription: %s", string(response))
+		return nil, err
+	}
+
+	res := apiSubscriptionOutput{}
+	err = json.Unmarshal(response, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Output.Error != "" {
+		err = fmt.Errorf(res.Output.Error)
 		return nil, err
 	}
 
