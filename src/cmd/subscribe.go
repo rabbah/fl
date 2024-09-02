@@ -19,10 +19,9 @@ func startSubscription(flags *FlagConfig) error {
 
 	if status.Status == "guest" {
 		url := status.SubscriptionURL + "?client_reference_id=" + flags.FLID
-		err = utils.OpenURL(url)
-		if err != nil {
-			fmt.Println("Could not open the browser automatically, so please navigate to the following URL to subscribe:\n\t", url)
-		}
+		fmt.Println(`Continue in your browser. If the link does not open automatically, please navigate to the following URL to subscribe:`)
+		fmt.Println(url)
+		utils.OpenURL(url)
 	} else {
 		printStatus(status)
 	}

@@ -25,7 +25,6 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd := &cobra.Command{
 		Use:   "fl <prompt>",
 		Short: "A command-line tool for generating command line scripts using AI",
-		Long:  "A command-line tool for generating command line scripts using AI.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			flags.Prompt = strings.Join(args[0:], " ")
@@ -36,7 +35,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd.PersistentFlags().BoolVarP(&flags.Verbose, "verbose", "v", false, "Verbose output")
 
 	rootCmd.PersistentFlags().BoolVarP(&flags.PromptRun, "prompt", "p", false, "Prompt to run generated commands")
-	rootCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", flags.AutoExecuteConf, "Automatically execute generated commands")
+	rootCmd.PersistentFlags().BoolVarP(&flags.AutoExecute, "run", "r", flags.AutoExecuteConf, "Automatically execute generated commands (suppresses prompt)")
 	//TODO//rootCmd.PersistentFlags().BoolVarP(&flags.Explain, "explain", "e", false, "Explain the generated command")
 
 	rootCmd.PersistentFlags().StringVarP(&flags.Outfile, "outfile", "o", "", "Write generated command to file")
@@ -48,6 +47,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	// config commands
 	addConfCommand(rootCmd, filepath, flags)
 
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	exitAfterHelp(rootCmd, 0)
 	rootCmd.SetArgs(args)
 	return rootCmd.Execute()

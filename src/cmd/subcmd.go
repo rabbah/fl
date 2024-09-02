@@ -43,9 +43,19 @@ func addSubscribeCommand(rootCmd *cobra.Command, filepath string, flags *FlagCon
 				return err
 			}
 
+			// save the flid to the configuration file for future use
 			flags.FLID = flid
-			return writeConfig(filepath, *flags)
 
+			err = writeConfig(filepath, *flags)
+			if err != nil {
+				return err
+			}
+
+			if subscribe, _ := cmd.Flags().GetBool("subscribe"); subscribe {
+				return startSubscription(flags)
+			}
+
+			return nil
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			os.Exit(0)
@@ -95,6 +105,8 @@ func addSubscribeCommand(rootCmd *cobra.Command, filepath string, flags *FlagCon
 	}
 
 	subLoginCmd.PersistentFlags().BoolP("guest", "g", false, "Guest login")
+	subLoginCmd.PersistentFlags().BoolP("subscribe", "s", false, "Start subscription")
+	subLoginCmd.MarkFlagsMutuallyExclusive("guest", "subscribe")
 
 	subscribeCmd.AddCommand(subLoginCmd)
 	subscribeCmd.AddCommand(subStartCmd)

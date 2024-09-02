@@ -38,14 +38,17 @@ func GetGitHubAccessToken(clientID string) (token GitHubAccessToken, err error) 
 	if err != nil {
 		return
 	}
+
 	deviceCode := response.DeviceCode
 	interval := response.Interval
 
 	Clip(response.UserCode)
+
 	fmt.Println("Press 'return' key to open your browser automatically and login to Github.")
 	fmt.Println("You will paste the following GitHub device code to login (already copied to your clipboard):", response.UserCode)
 	// Wait until any key is pressed to continue so the user has time to read the message
 	fmt.Scanln()
+
 	err = OpenURL(response.VerificationURI + "?code=" + response.UserCode)
 	if err != nil {
 		fmt.Println("Could not open the browser automatically, so please navigate to the following URL to login to GitHub:\n\t", response.VerificationURI)

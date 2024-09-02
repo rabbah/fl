@@ -57,7 +57,7 @@ func runFL(flags cmd.FlagConfig) {
 		fmt.Println(`
 Warning: You have exhausted your allowed quota.
 Features will be limited and your access may get cut off entirely.
-Use 'fl subscription start' to subscribe and continue using the tool.`)
+Use 'fl subscription login --subscribe' to subscribe and continue using the tool.`)
 		return
 	}
 
