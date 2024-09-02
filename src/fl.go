@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	markdown "github.com/MichaelMure/go-term-markdown"
 )
 
 func main() {
@@ -34,7 +36,11 @@ func main() {
 
 	utils.Log(flags.Verbose, "Flags: %+v\n", flags)
 
-	runFL(flags)
+	if flags.Prompt == "" {
+		intro()
+	} else {
+		runFL(flags)
+	}
 }
 
 func runFL(flags cmd.FlagConfig) {
@@ -105,4 +111,40 @@ Use 'fl subscription login --subscribe' to subscribe and continue using the tool
 		// Print the output
 		fmt.Println(out)
 	}
+}
+
+func intro() {
+	source := `
+Here are some sample calls for using 'fl':
+
+**Description**: Remove a directory and all its contents.
+
+	fl remove a directory and all its contents
+
+	Sample output:
+	rm -r directory_name
+
+**Description**: Search for files containing a specific keyword in the src directory.
+
+    fl search for files containing keyword in src directory
+
+	Sample output:
+	grep -r "keyword" src
+
+**Description**: Process a CSV file to extract a column and count unique occurences of a value.
+
+    fl count the number of unique values that appear in the second column of a csv file, make sure the count is case insensitive, report the total count only
+
+	Sample output:
+	awk -F, '{print tolower($2)}' file.csv | sort -u | wc -l
+
+**Description**: Call an authenticated API and pass in some JSON data.
+
+    fl call an api that returns JSON and sends some data {"foo":"bar"} as json where the api uses basic auth and the secret is an environment variable called API_KEY
+
+	Sample output:
+	curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Basic $API_KEY' -d '{"foo":"bar"}' https://api.example.com/endpoint`
+
+	result := markdown.Render(source, 80, 0)
+	fmt.Println(string(result))
 }

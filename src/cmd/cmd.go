@@ -25,7 +25,7 @@ func ParseCommandLine(args []string, filepath string, flags *FlagConfig) error {
 	rootCmd := &cobra.Command{
 		Use:   "fl <prompt>",
 		Short: "A command-line tool for generating command line scripts using AI",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			flags.Prompt = strings.Join(args[0:], " ")
 		},
