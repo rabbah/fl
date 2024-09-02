@@ -1,23 +1,12 @@
 package exec
 
 import (
-	"fmt"
 	"os/exec"
-	"strings"
 )
 
 // wrap os.exec struct for decoupling
 type Exec struct {
 	Cmd *exec.Cmd
-}
-
-func PromptExec() (userExec bool) {
-	var userInput string
-	fmt.Println()
-	fmt.Print("Would you like to execute the command? (y/n): ")
-	fmt.Scanln(&userInput)
-	userInput = strings.ToLower(userInput)
-	return userInput == "y" || userInput == "yes"
 }
 
 func Command(result string) Exec {

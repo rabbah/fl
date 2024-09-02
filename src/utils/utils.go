@@ -122,3 +122,13 @@ func Log(verbose bool, msg string, rest ...interface{}) {
 		fmt.Printf(msg, rest...)
 	}
 }
+
+func PromptYesNo(prompt string) bool {
+	var userInput string
+
+	fmt.Printf("%s (y/n): ", prompt)
+	fmt.Scanln(&userInput)
+
+	userInput = strings.ToLower(strings.TrimSpace(userInput))
+	return userInput == "y" || userInput == "yes"
+}
