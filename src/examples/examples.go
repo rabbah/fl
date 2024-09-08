@@ -36,6 +36,11 @@ var commands = []commandDescription{
 		Output:      "awk -F, '{print tolower($2)}' file.csv | sort -u | wc -l",
 	},
 	{
+		Description: "Change contents of a file to uppercase.",
+		Command:     "fl change the contents of a file to uppercase and save the results back to the same file",
+		Output:      "tr '[:lower:]' '[:upper:]' < file.txt > temp.txt && mv temp.txt file.txt",
+	},
+	{
 		Description: "Generate a command to find all files with a specific extension in a directory.",
 		Command:     "fl find all files ending in .ext",
 		Output:      "find . -type f -name '*.ext'",
@@ -59,7 +64,7 @@ func Show() {
 	fmt.Println(string(result))
 
 	examples := formatExamples(commands[:3])
-	result = markdown.Render(examples, 160, 0)
+	result = markdown.Render(examples, 80, 0)
 	fmt.Println(string(result))
 
 	showMoreExamples := utils.PromptYesNo("Do you want to see more examples?")
