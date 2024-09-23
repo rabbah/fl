@@ -5,6 +5,8 @@
 This command line tool, `fl`, is designed to convert natural language descriptions of command line tasks into valid Unix commands.
 It simplifies the process of executing tasks on a Unix command line by allowing users to describe their actions in plain language.
 
+You can read more about the story of `fl` [here](https://www.linkedin.com/pulse/building-real-world-ai-application-withapis-using-postman-rabbah-3bbbe/).
+
 ## Development
 
 git clone this repo then run the setup command to configures git hooks.
