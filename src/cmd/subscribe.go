@@ -14,6 +14,10 @@ func startSubscription(flags *FlagConfig) error {
 
 	status, err := api.StartSubscription(flags.FLID)
 	if err != nil {
+		if err.Error() == `invalid token` {
+			fmt.Println(`Login first then try again.`)
+			return nil
+		}
 		return err
 	}
 
