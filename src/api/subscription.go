@@ -6,10 +6,8 @@ import (
 	"fmt"
 )
 
-type apiSubscriptionInput struct {
-	Input struct {
-		FLID string `json:"flid"`
-	} `json:"Input"`
+type SubscriptionInput struct {
+	FLID string `json:"flid"`
 }
 
 type SubscriptionResult struct {
@@ -21,13 +19,9 @@ type SubscriptionResult struct {
 	Error           string      `json:"error"`
 }
 
-type apiSubscriptionOutput struct {
-	Output SubscriptionResult `json:"Output"`
-}
-
 func StartSubscription(flid string) (*SubscriptionResult, error) {
-	body := apiSubscriptionInput{}
-	body.Input.FLID = flid
+	body := SubscriptionInput{}
+	body.FLID = flid
 
 	statusCode, response, err := utils.PostJSON(StartSubscriptionAPI, body)
 	if err != nil {
@@ -39,23 +33,23 @@ func StartSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	res := apiSubscriptionOutput{}
+	res := SubscriptionResult{}
 	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Output.Error != "" {
-		err = fmt.Errorf(res.Output.Error)
+	if res.Error != "" {
+		err = fmt.Errorf(res.Error)
 		return nil, err
 	}
 
-	return &res.Output, nil
+	return &res, nil
 }
 
 func CancelSubscription(flid string) (*SubscriptionResult, error) {
-	body := apiSubscriptionInput{}
-	body.Input.FLID = flid
+	body := SubscriptionInput{}
+	body.FLID = flid
 
 	statusCode, response, err := utils.PostJSON(CancelSubscriptionAPI, body)
 	if err != nil {
@@ -67,23 +61,23 @@ func CancelSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	res := apiSubscriptionOutput{}
+	res := SubscriptionResult{}
 	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Output.Error != "" {
-		err = fmt.Errorf(res.Output.Error)
+	if res.Error != "" {
+		err = fmt.Errorf(res.Error)
 		return nil, err
 	}
 
-	return &res.Output, nil
+	return &res, nil
 }
 
 func StatusOfSubscription(flid string) (*SubscriptionResult, error) {
-	body := apiSubscriptionInput{}
-	body.Input.FLID = flid
+	body := SubscriptionInput{}
+	body.FLID = flid
 
 	statusCode, response, err := utils.PostJSON(StatusOfSubscriptionAPI, body)
 	if err != nil {
@@ -95,16 +89,16 @@ func StatusOfSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	res := apiSubscriptionOutput{}
+	res := SubscriptionResult{}
 	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Output.Error != "" {
-		err = fmt.Errorf(res.Output.Error)
+	if res.Error != "" {
+		err = fmt.Errorf(res.Error)
 		return nil, err
 	}
 
-	return &res.Output, nil
+	return &res, nil
 }
