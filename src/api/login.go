@@ -6,23 +6,16 @@ import (
 	"fmt"
 )
 
-type apiLoginInput struct {
-	Input struct {
-		Token string `json:"token"`
-	} `json:"Input"`
+type LoginInput struct {
+	Token string `json:"token"`
 }
-
-type apiLoginOutput struct {
-	Output LoginResult `json:"Output"`
-}
-
 type LoginResult struct {
 	FLID string `json:"flid"`
 }
 
 func LoginCommand(token string) (string, error) {
-	body := apiLoginInput{}
-	body.Input.Token = token
+	body := LoginInput{}
+	body.Token = token
 
 	statusCode, response, err := utils.PostJSON(LoginGitHubAPI, body)
 	if err != nil {
@@ -34,11 +27,11 @@ func LoginCommand(token string) (string, error) {
 		return "", err
 	}
 
-	res := apiLoginOutput{}
+	res := LoginResult{}
 	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return "", err
 	}
 
-	return res.Output.FLID, nil
+	return res.FLID, nil
 }
