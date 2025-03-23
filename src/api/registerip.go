@@ -5,14 +5,8 @@ import (
 	"fl/utils"
 )
 
-type apiRegisterInput struct {
-	Input struct {
-		IP string `json:"ip"`
-	} `json:"Input"`
-}
-
-type apiRegisterOutput struct {
-	Output LoginResult `json:"Output"`
+type RegisterInput struct {
+	IP string `json:"ip"`
 }
 
 /**
@@ -25,20 +19,20 @@ func LoginGuestUserByIP() (flid string, err error) {
 		return
 	}
 
-	input := apiRegisterInput{}
-	input.Input.IP = ip
+	input := RegisterInput{}
+	input.IP = ip
 
 	_, response, err := utils.PostJSON(LoginGuestAPI, input)
 	if err != nil {
 		return
 	}
 
-	output := apiRegisterOutput{}
+	output := LoginResult{}
 	err = json.Unmarshal(response, &output)
 	if err != nil {
 		return
 	}
 
-	flid = output.Output.FLID
+	flid = output.FLID
 	return
 }
