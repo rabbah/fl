@@ -6,18 +6,11 @@ import (
 	"fmt"
 )
 
-type apiGenerateCommandInput struct {
-	Input struct {
-		Prompt   string `json:"prompt"`
-		Language string `json:"language"`
-		FLID     string `json:"flid"`
-	} `json:"Input"`
+type GenerateCommandInput struct {
+	Prompt   string `json:"prompt"`
+	Language string `json:"language"`
+	FLID     string `json:"flid"`
 }
-
-type apiGenerateCommandOutput struct {
-	Output GeneratedCommandResult `json:"Output"`
-}
-
 type GeneratedCommandResult struct {
 	Valid bool   `json:"valid"`
 	Quota bool   `json:"quota"`
@@ -25,10 +18,10 @@ type GeneratedCommandResult struct {
 }
 
 func GenerateCommand(prompt string, language string, flid string) (*GeneratedCommandResult, error) {
-	body := apiGenerateCommandInput{}
-	body.Input.Prompt = prompt
-	body.Input.Language = language
-	body.Input.FLID = flid
+	body := GenerateCommandInput{}
+	body.Prompt = prompt
+	body.Language = language
+	body.FLID = flid
 
 	statusCode, response, err := utils.PostJSON(GenerateCmdAPI, body)
 	if err != nil {
@@ -40,11 +33,11 @@ func GenerateCommand(prompt string, language string, flid string) (*GeneratedCom
 		return nil, err
 	}
 
-	res := apiGenerateCommandOutput{}
+	res := GeneratedCommandResult{}
 	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	return &res.Output, nil
+	return &res, nil
 }
