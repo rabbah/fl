@@ -33,5 +33,11 @@ func LoginCommand(token string) (string, error) {
 		return "", err
 	}
 
-	return res.FLID, nil
+	flid := res.FLID
+
+	if flid == "" {
+		err = fmt.Errorf("failed to login: %s", string(response))
+	}
+
+	return flid, err
 }

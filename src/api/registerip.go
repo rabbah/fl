@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fl/utils"
+	"fmt"
 )
 
 type RegisterInput struct {
@@ -27,12 +28,17 @@ func LoginGuestUserByIP() (flid string, err error) {
 		return
 	}
 
-	output := LoginResult{}
-	err = json.Unmarshal(response, &output)
+	res := LoginResult{}
+	err = json.Unmarshal(response, &res)
 	if err != nil {
 		return
 	}
 
-	flid = output.FLID
+	flid = res.FLID
+
+	if flid == "" {
+		err = fmt.Errorf("failed to register as a guest: %s", string(response))
+	}
+
 	return
 }
