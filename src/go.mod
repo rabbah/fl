@@ -1,6 +1,6 @@
 module fl
 
-go 1.22.5
+go 1.24.1
 
 require (
 	github.com/MichaelMure/go-term-markdown v0.1.4
