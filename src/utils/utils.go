@@ -74,7 +74,6 @@ func PostJSON(url string, payload interface{}) (int, []byte, error) {
 	// Step 3: Set the Accept and Content-Type header to application/json
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "")
 
 	// Step 4: Perform the HTTP request
 	client := &http.Client{}

@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+func tryLoginMessage(err error) error {
+	msg := err.Error()
+	if msg == "invalid token" || msg == "reset registration" {
+		fmt.Println("Login first then try again.")
+		return nil
+	}
+	return err
+}
+
 func startSubscription(flags *FlagConfig) error {
 	if flags.FLID == "" {
 		return LoginMessage(false)
@@ -14,16 +23,12 @@ func startSubscription(flags *FlagConfig) error {
 
 	status, err := api.StartSubscription(flags.FLID)
 	if err != nil {
-		if err.Error() == `invalid token` {
-			fmt.Println(`Login first then try again.`)
-			return nil
-		}
-		return err
+		return tryLoginMessage(err)
 	}
 
 	if status.Status == "guest" {
 		url := status.SubscriptionURL + "?client_reference_id=" + flags.FLID
-		fmt.Println(`Continue in your browser. If the link does not open automatically, please navigate to the following URL to subscribe:`)
+		fmt.Println("Continue in your browser. If the link does not open automatically, please navigate to the following URL to subscribe:")
 		fmt.Println(url)
 		utils.OpenURL(url)
 	} else {
@@ -40,7 +45,7 @@ func cancelSubscription(flags *FlagConfig) error {
 
 	status, err := api.CancelSubscription(flags.FLID)
 	if err != nil {
-		return err
+		return tryLoginMessage(err)
 	}
 
 	printStatus(status)
@@ -54,7 +59,7 @@ func statusSubscription(flags *FlagConfig) error {
 
 	status, err := api.StatusOfSubscription(flags.FLID)
 	if err != nil {
-		return err
+		return tryLoginMessage(err)
 	}
 
 	printStatus(status)

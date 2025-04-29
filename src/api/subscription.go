@@ -28,8 +28,8 @@ func StartSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	if statusCode != 200 {
-		err = fmt.Errorf("failed to start a new subscription: %s", string(response))
+	if statusCode != 200 && statusCode != 400 {
+		err = fmt.Errorf("failed to start subscription: %s", string(response))
 		return nil, err
 	}
 
@@ -56,8 +56,8 @@ func CancelSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	if statusCode != 200 {
-		err = fmt.Errorf("failed to cancel subscription: %s", string(response))
+	if statusCode != 200 && statusCode != 400 {
+		err = fmt.Errorf("failed to start subscription: %s", string(response))
 		return nil, err
 	}
 
@@ -84,8 +84,8 @@ func StatusOfSubscription(flid string) (*SubscriptionResult, error) {
 		return nil, err
 	}
 
-	if statusCode != 200 {
-		err = fmt.Errorf("failed to check status of subscription: %s", string(response))
+	if statusCode != 200 && statusCode != 400 {
+		err = fmt.Errorf("failed to start subscription: %s", string(response))
 		return nil, err
 	}
 
