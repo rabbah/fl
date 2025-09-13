@@ -45,6 +45,12 @@ jobs:
         with:
           go-version: '1.24.1'
 
+      - name: Install System Dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev xorg-dev
+
       - name: Install Dependencies
         run: |
           cd src
