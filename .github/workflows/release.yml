@@ -4,11 +4,11 @@ name: Create Release on Version Tagged Push
 on:
   push:
     tags:
-      - 'v[0-9].[0-9]+.[0-9]+'
+      - "v[0-9].[0-9]+.[0-9]+"
 
 permissions:
-    contents: write
-            
+  contents: write
+
 jobs:
   create_release:
     name: Create Release
@@ -22,7 +22,7 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: false
-          
+
   build_release:
     name: Build Release
     strategy:
@@ -34,7 +34,7 @@ jobs:
           - os: macos-latest
             release_suffix: mac.tar.gz
           - os: windows-latest
-            release_suffix: windows.zip
+            release_suffix: windows.tar.gz
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.24.1'
+          go-version: "1.24.1"
 
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -69,7 +69,7 @@ jobs:
         run: |
           chmod +x fl
           tar -cvf fl-ubuntu.tar.gz fl README.md
-      
+
       - name: Mac Post Build
         if: matrix.os == 'macos-latest'
         run: |
