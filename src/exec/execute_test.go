@@ -80,12 +80,14 @@ func TestRedirectAndOutput(t *testing.T) {
 	if actual_contents != expected_contents {
 		exec.Command("rm", "test.txt").Run()
 		t.Fatalf(
-			"actual != expected\n\n" +
-				"actual:\n" +
-				actual_contents +
-				"\nexpected:\n" +
-				expected_contents +
+			"actual != expected\n\n"+
+				"actual:\n"+
+				"%s"+
+				"\nexpected:\n"+
+				"%s"+
 				"\n\n",
+			actual_contents,
+			expected_contents,
 		)
 	}
 

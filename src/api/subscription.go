@@ -40,7 +40,7 @@ func StartSubscription(flid string) (*SubscriptionResult, error) {
 	}
 
 	if res.Error != "" {
-		err = fmt.Errorf(res.Error)
+		err = fmt.Errorf("%s", res.Error)
 		return nil, err
 	}
 
@@ -68,7 +68,7 @@ func CancelSubscription(flid string) (*SubscriptionResult, error) {
 	}
 
 	if res.Error != "" {
-		err = fmt.Errorf(res.Error)
+		err = fmt.Errorf("%s", res.Error)
 		return nil, err
 	}
 
@@ -96,7 +96,7 @@ func StatusOfSubscription(flid string) (*SubscriptionResult, error) {
 	}
 
 	if res.Error != "" {
-		err = fmt.Errorf(res.Error)
+		err = fmt.Errorf("%s", res.Error)
 		return nil, err
 	}
 
